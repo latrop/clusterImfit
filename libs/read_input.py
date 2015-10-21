@@ -23,21 +23,30 @@ class ImfitParameter(object):
         self.value = value
         self.lowerLim = lowerLim
         self.upperLim = upperLim
+    def tostring(self):
+        return "{:12}{:6.2f}{:12.2f},{:1.2f}\n".format(self.name, self.value, self.lowerLim, self.upperLim)
 
 
 class ImfitFunction(object):
     """ Class represents imfit function with
     all its parameters their ranges"""
     def __init__(self, funcName):
-        self.funcName = funcName
-        self.params = {}
+        self.name = funcName
+        self.params = []
     def add_parameter(self, newParameter):
-        self.params[newParameter.name] = newParameter
+        self.params.append(newParameter)
+    def num_of_params(self):
+        return len(self.params)
+    def get_par_by_name(self, name):
+        for par in self.params:
+            if par.name == name:
+                return par
 
 
 class ImfitModel(object):
     """Imfit functions and their parameters"""
     def __init__(self, modelFileName):
+        print "Reading '%s':" % (modelFileName)
         # Read imfit input file
         self.listOfFunctions = []
         funcName = None
@@ -69,3 +78,19 @@ class ImfitModel(object):
                 # then in has to be a parameter line
                 param = parse_imfit_line(line)
                 currentFunction.add_parameter(param)
+        # append the last function
+        self.listOfFunctions.append(currentFunction)
+        # Print some statistics
+        print "  %i functions found\n" % len(self.listOfFunctions)
+
+    def create_input_file(self, fileName):
+        fout = open(fileName, "w")
+        fout.truncate(0)
+        for func in self.listOfFunctions:
+            fout.write(func.get_par_by_name("X0").tostring())
+            fout.write(func.get_par_by_name("Y0").tostring())
+            fout.write(func.name+"\n")
+            for par in func.params[2:]:
+                fout.write(par.tostring())
+        fout.close()
+        print "Model was saved to '%s'\n" % (fileName)
