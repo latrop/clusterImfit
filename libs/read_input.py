@@ -1,5 +1,9 @@
 #! /usr/bin/env python
 
+from pygene.gene import FloatGene, FloatGeneMax, IntGene
+from pygene.organism import Organism, MendelOrganism
+
+
 def parse_imfit_line(line):
     """ Function parses line of imfit data file and
     returns parameters"""
@@ -25,13 +29,24 @@ class ImfitParameter(object):
         self.upperLim = upperLim
     def tostring(self):
         return "{:12}{:6.2f}{:12.2f},{:1.2f}\n".format(self.name, self.value, self.lowerLim, self.upperLim)
+    def change_value(self, newValue):
+        self.value = newValue
+        if self.lowerLim > newValue:
+            self.lowerLim = newValue - newValue*0.001
+        if self.upperLim < newValue:
+            self.upperLim = newValue + newValue*0.001
 
 
 class ImfitFunction(object):
     """ Class represents imfit function with
     all its parameters their ranges"""
-    def __init__(self, funcName):
+    def __init__(self, funcName, ident):
+        # ident is a unical number of the function
+        # funcName is just a type of the function and it can be 
+        # the same for different galaxy components
         self.name = funcName
+        self.ident = ident
+        self.uname = "%s.%i" % (funcName, ident) # func unique name
         self.params = []
     def add_parameter(self, newParameter):
         self.params.append(newParameter)
@@ -50,6 +65,7 @@ class ImfitModel(object):
         # Read imfit input file
         self.listOfFunctions = []
         funcName = None
+        ident = -1
         for line in open(modelFileName):
             sLine = line.strip()
             if line.startswith("#"):
@@ -64,13 +80,14 @@ class ImfitModel(object):
                 y0 = parse_imfit_line(line)
             elif line.startswith("FUNCTION"):
                 # New function is found.
+                ident += 1
                 # If we are working already with some function, then
                 # the list of parameters for this function is over and we can
                 # add it to the function list
                 if funcName is not None:
                     self.listOfFunctions.append(currentFunction)
                 funcName = line.split()[1]
-                currentFunction = ImfitFunction(funcName)
+                currentFunction = ImfitFunction(funcName, ident)
                 currentFunction.add_parameter(x0)
                 currentFunction.add_parameter(y0)
             else:
@@ -83,6 +100,11 @@ class ImfitModel(object):
         # Print some statistics
         print "  %i functions found\n" % len(self.listOfFunctions)
 
+    def get_func_by_uname(self, uname):
+        for func in self.listOfFunctions:
+            if uname == func.uname:
+                return func
+
     def create_input_file(self, fileName):
         fout = open(fileName, "w")
         fout.truncate(0)
@@ -94,3 +116,32 @@ class ImfitModel(object):
                 fout.write(par.tostring())
         fout.close()
         print "Model was saved to '%s'\n" % (fileName)
+
+    def create_genome(self):
+        """ This function creates a genome class for each
+        parameter of the model. These classes will be stored in
+        the genomeClasses list and their instances can be
+        created using elements of this list (i.e. there is no
+        names of these classes)"""
+        genomeClasses = []
+        genome = {}
+        for func in self.listOfFunctions:
+            for par in func.params:
+                class ParamGene(FloatGeneMax):
+                    randMin = par.lowerLim
+                    randMax = par.upperLim
+                    mutProb = 0.5
+                    mutAmt = 0.05
+                genomeClasses.append(ParamGene)
+                genome[func.uname+":"+par.name] = ParamGene
+        return genome
+
+    def genome_to_model(self, genome):
+        """Set model parameter values according to given genome"""
+        for gene in genome:
+            funcName, parName = gene.split(":")
+            func = self.get_func_by_uname(funcName)
+            for par in func.params:
+                if par.name == parName:
+                    par.change_value(genome[gene])
+        self.create_input_file("run.dat")
