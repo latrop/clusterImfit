@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 
+import uuid
+
 from pygene.gene import FloatGene, FloatGeneMax, IntGene
 from pygene.organism import Organism, MendelOrganism
 
@@ -27,8 +29,11 @@ class ImfitParameter(object):
         self.value = value
         self.lowerLim = lowerLim
         self.upperLim = upperLim
-    def tostring(self):
-        return "{:12}{:6.2f}{:12.2f},{:1.2f}\n".format(self.name, self.value, self.lowerLim, self.upperLim)
+    def tostring(self, fixAll):
+        if fixAll:
+            return "{:12}{:6.2f}     fixed\n".format(self.name, self.value)
+        else:
+            return "{:12}{:6.2f}{:12.2f},{:1.2f}\n".format(self.name, self.value, self.lowerLim, self.upperLim)
     def change_value(self, newValue):
         self.value = newValue
         if self.lowerLim > newValue:
@@ -68,17 +73,17 @@ class ImfitModel(object):
         ident = -1
         for line in open(modelFileName):
             sLine = line.strip()
-            if line.startswith("#"):
+            if sLine.startswith("#"):
                 # It is a comment line, just skip it
                 continue
-            if "#" in line:
+            if "#" in sLine:
                 # Drop the comment part of the line if exists
-                line = line[:line.index("#")].strip()
-            if line.startswith("X0"):
-                x0 = parse_imfit_line(line)
-            elif line.startswith("Y0"):
-                y0 = parse_imfit_line(line)
-            elif line.startswith("FUNCTION"):
+                sLine = sLine[:sLine.index("#")].strip()
+            if sLine.startswith("X0"):
+                x0 = parse_imfit_line(sLine)
+            elif sLine.startswith("Y0"):
+                y0 = parse_imfit_line(sLine)
+            elif sLine.startswith("FUNCTION"):
                 # New function is found.
                 ident += 1
                 # If we are working already with some function, then
@@ -86,14 +91,14 @@ class ImfitModel(object):
                 # add it to the function list
                 if funcName is not None:
                     self.listOfFunctions.append(currentFunction)
-                funcName = line.split()[1]
+                funcName = sLine.split()[1]
                 currentFunction = ImfitFunction(funcName, ident)
                 currentFunction.add_parameter(x0)
                 currentFunction.add_parameter(y0)
             else:
                 # If line does not contain nor coordinates nor function name
                 # then in has to be a parameter line
-                param = parse_imfit_line(line)
+                param = parse_imfit_line(sLine)
                 currentFunction.add_parameter(param)
         # append the last function
         self.listOfFunctions.append(currentFunction)
@@ -105,17 +110,20 @@ class ImfitModel(object):
             if uname == func.uname:
                 return func
 
-    def create_input_file(self, fileName):
+    def create_input_file(self, fileName=None, fixAll=False):
+        if fileName is None:
+            fileName = "temp_%s.dat" % (uuid.uuid4())
         fout = open(fileName, "w")
         fout.truncate(0)
         for func in self.listOfFunctions:
-            fout.write(func.get_par_by_name("X0").tostring())
-            fout.write(func.get_par_by_name("Y0").tostring())
-            fout.write(func.name+"\n")
+            fout.write(func.get_par_by_name("X0").tostring(fixAll))
+            fout.write(func.get_par_by_name("Y0").tostring(fixAll))
+            fout.write("FUNCTION " + func.name+"\n")
             for par in func.params[2:]:
-                fout.write(par.tostring())
+                fout.write(par.tostring(fixAll))
         fout.close()
-        print "Model was saved to '%s'\n" % (fileName)
+        #print "Model was saved to '%s'\n" % (fileName)
+        return fileName
 
     def create_genome(self):
         """ This function creates a genome class for each
@@ -144,4 +152,23 @@ class ImfitModel(object):
             for par in func.params:
                 if par.name == parName:
                     par.change_value(genome[gene])
-        self.create_input_file("run.dat")
+
+
+class GeneralParams(object):
+    """ Input parameters unrelated to imfit (input image, size of the
+    population etc.) """
+    def __init__(self, fileName):
+        for line in open(fileName):
+            sLine = line.strip()
+            if sLine.startswith("#"):
+                # It is a comment line, just skip it
+                continue
+            if "#" in sLine:
+                # Drop the comment part of the line if exists
+                sLine = sLine[:sLine.index("#")].strip()
+            if sLine.startswith("Fits"):
+                self.fitsToFit = sLine.split()[1]
+                continue
+            if sLine.startswith("Popsize"):
+                self.popSize = int(sLine.split()[1])
+            
