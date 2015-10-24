@@ -122,7 +122,7 @@ class ImfitModel(object):
             for par in func.params[2:]:
                 fout.write(par.tostring(fixAll))
         fout.close()
-        #print "Model was saved to '%s'\n" % (fileName)
+        print "Model was saved to '%s'\n" % (fileName)
         return fileName
 
     def create_genome(self):

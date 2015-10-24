@@ -16,14 +16,12 @@ def calculate_fitness(model, gParams):
     Organisms try to evolve to minimise this function's value
     """
     fname = model.create_input_file(fixAll=True)
-    subprocess.call("./imfit -c %s %s --readnoise=4.3 --nm --max-threads 1 >./result_%s" % (fname, gParams.fitsToFit, fname), shell=True)
-    # find chi-square
-    for line in open("./result_%s" % (fname)):
+    runString = "./imfit -c %s %s --readnoise=4.3 --nm --max-threads 1 ; rm %s" % (fname, gParams.fitsToFit, fname)
+    proc = subprocess.Popen(runString, stdout=subprocess.PIPE, shell=True)
+    for line in proc.stdout:
         if "CHI-SQUARE =" in line:
             chisq = float(line.split()[2])
-            break
-    remove(fname)
-    remove("./result_%s" % (fname))
+    proc.wait()
     return chisq
 
 
@@ -65,7 +63,7 @@ class GalaxyPopulation(Population):
 ph = GalaxyPopulation()
 def main(nfittest=10, nkids=100):
     i = 0
-    while i<=1:
+    while i<=0:
         b = ph.best()
         print "generation %s: %s best=%s average=%s)" % (
             i, repr(b), b.get_fitness(), ph.fitness())
