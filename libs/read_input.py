@@ -122,7 +122,7 @@ class ImfitModel(object):
             for par in func.params[2:]:
                 fout.write(par.tostring(fixAll))
         fout.close()
-        print "Model was saved to '%s'\n" % (fileName)
+        # print "Model was saved to '%s'\n" % (fileName)
         return fileName
 
     def create_genome(self):
@@ -139,7 +139,7 @@ class ImfitModel(object):
                     randMin = par.lowerLim
                     randMax = par.upperLim
                     mutProb = 0.5
-                    mutAmt = 0.05
+                    mutAmt = 0.01
                 genomeClasses.append(ParamGene)
                 genome[func.uname+":"+par.name] = ParamGene
         return genome
@@ -166,9 +166,31 @@ class GeneralParams(object):
             if "#" in sLine:
                 # Drop the comment part of the line if exists
                 sLine = sLine[:sLine.index("#")].strip()
+            if sLine.startswith("numOfCores"):
+                self.numOfCores = int(sLine.split()[1])
             if sLine.startswith("Fits"):
                 self.fitsToFit = sLine.split()[1]
                 continue
+            if sLine.startswith("PSF"):
+                self.PSF = sLine.split()[1]
+                continue
+            if sLine.startswith("Mask"):
+                self.mask = sLine.split()[1]
+                continue
             if sLine.startswith("Popsize"):
                 self.popSize = int(sLine.split()[1])
-            
+                continue
+            if sLine.startswith("ZeroGenSize"):
+                self.zeroGenSize = int(sLine.split()[1])
+                continue
+            if sLine.startswith("selectNbest"):
+                self.selectNbest = int(sLine.split()[1])
+                continue
+            if sLine.startswith("addNew"):
+                self.addNew = int(sLine.split()[1])
+                continue
+            if sLine.startswith("readNoise"):
+                self.readNoise = float(sLine.split()[1])
+                continue
+            if sLine.startswith("maxGenNumber"):
+                self.maxGenNumber = int(sLine.split()[1])

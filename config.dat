@@ -1,2 +1,12 @@
-Fits       galaxy.fits
-Popsize    20
+numOfCores     3              # Number of cores to scatter computations
+Fits           galaxy.fits    # Fits file with galaxy
+PSF            none           # File with psf or 'none'
+Mask           none           # Mask file or 'none'
+ZeroGenSize    10             # Size of random zero generation
+Popsize        20             # Size of i-th generation
+selectNbest    10             # Number best species selected in the generation
+addNew          1             # Add this many random species in each generation
+maxGenNumber   20             # Maximum number of generation
+readNoise     4.3             # Readnoise of an image
+
+
