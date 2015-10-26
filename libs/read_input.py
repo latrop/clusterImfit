@@ -194,3 +194,9 @@ class GeneralParams(object):
                 continue
             if sLine.startswith("maxGenNumber"):
                 self.maxGenNumber = int(sLine.split()[1])
+                continue
+            if sLine.startswith("fTol"):
+                self.fTol = float(sLine.split()[1])
+                continue
+            if sLine.startswith("fSpan"):
+                self.fSpan = int(sLine.split()[1])

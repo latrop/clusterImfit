@@ -56,7 +56,7 @@ class Converger(MendelOrganism):
         fname = self.model.create_input_file(fixAll=True)
         runString = "./makeimage %s --refimage %s " % (fname, gParams.fitsToFit)
         if gParams.PSF != "none":
-            runString += " --psf %s" % (gParams.PSF)
+            runString += " --psf %s " % (gParams.PSF)
         runString += "--output %s ; rm %s" % (outFile, fname)
         proc = subprocess.Popen(runString, stdout=subprocess.PIPE, shell=True)
         proc.wait()
@@ -76,24 +76,16 @@ class Converger(MendelOrganism):
         runString += " --save-model ./results/%i_lm_model.fits " % (ident)
         runString += " --save-residual ./results/%i_lm_residual.fits " % (ident) 
         # runString += " ; rm %s" % (fname)
+        print "\n Starting L-M optimisation"
         proc = subprocess.Popen(runString, stdout=subprocess.PIPE, shell=True)
+        proc.wait()
         for line in proc.stdout:
-            print line
+            if "mpfit status" in line:
+                print "L-M optimisation is finished with status:"
+                print " ".join(line.split()[6:])
+            if "Reduced Chi^2" in line:
+                print line
 
-
-def main():
-    iGen = 0
-    while iGen<=gParams.maxGenNumber:
-        best = pop.best()
-        print "generation %s: %s best=%s average=%s" % (
-            iGen, repr(best), best.get_fitness(), pop.fitness())
-        best.save_results("./results/generations/gen_%03i.fits" % (iGen))
-        if best.get_fitness() <= 0:
-            print "cracked!"
-            break
-        iGen += 1
-        pop.gen()
-    best.run_lm_optimisation(iGen)
 
 if __name__ == '__main__':
     gParams = GeneralParams("config.dat")
@@ -105,4 +97,28 @@ if __name__ == '__main__':
     if not os.path.exists("./results/generations/"):
         os.makedirs("./results/generations/")
     pool = Pool(gParams.numOfCores)
-    main()
+
+    iGen = 0
+    bestFitness = []
+    avgFitness = []
+    while 1:
+        best = pop.best()
+        ftns = best.get_fitness()
+        avgFtns = pop.fitness()
+        print "generation %s: best=%s average=%s" % (iGen, ftns, avgFtns)
+        bestFitness.append(ftns)
+        avgFitness.append(avgFtns)
+        best.save_results("./results/generations/gen_%03i.fits" % (iGen))
+        if (iGen > gParams.fSpan):
+            relBestFitnessChange = abs(bestFitness[-1] - bestFitness[-gParams.fSpan]) / bestFitness[-1]
+            relAvgFitnessChange = abs(avgFitness[-1]-avgFitness[-gParams.fSpan]) / avgFitness[-1]
+            print relBestFitnessChange, relAvgFitnessChange
+            if  (relBestFitnessChange < gParams.fTol) and (relAvgFitnessChange < gParams.fTol):
+                print "\n Method converged"
+                break
+        if iGen >= gParams.maxGenNumber:
+            print "\n Maximum number of generation reached."
+            break
+        iGen += 1
+        pop.gen()
+    best.run_lm_optimisation(iGen)
