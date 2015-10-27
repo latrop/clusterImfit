@@ -5,6 +5,9 @@ import copy
 import os
 from multiprocessing import Pool
 import subprocess
+from shutil import move
+
+from numpy import argmin
 
 from pygene.gene import FloatGene, FloatGeneMax
 from pygene.organism import Organism, MendelOrganism
@@ -12,21 +15,14 @@ from pygene.population import Population
 
 from libs.read_input import ImfitModel, GeneralParams
 
-def calculate_fitness(model, gParams):
-    """
-    Implements the 'fitness function' for this species.
-    Organisms try to evolve to minimise this function's value
-    """
-    fname = model.create_input_file(fixAll=True)
-    runString = "./imfit -c %s %s " % (fname, gParams.fitsToFit)
-    runString += "--readnoise=%1.2f " % (gParams.readNoise)
-    runString += " --nm --max-threads 1 "
-    runString += " --save-params /dev/null "
-    if gParams.PSF != "none":
-        runString += " --psf %s " % (gParams.PSF)
-    if gParams.mask != "none":
-        runString += " --mask %s" % (gParams.mask)
-    runString += " ; rm %s " % (fname)
+
+def remove(pth):
+    if os.path.exists(pth):
+        os.remove(pth)
+
+
+def run_imfit_parallel(runString):
+    chisq = 1e10
     proc = subprocess.Popen(runString, stdout=subprocess.PIPE, shell=True)
     for line in proc.stdout:
         if "Reduced Chi^2 =" in line:
@@ -47,10 +43,21 @@ class Converger(MendelOrganism):
         for key in self.genes.keys():
             genome[key] = self[key]
         self.model.genome_to_model(genome)
-        self.result = pool.apply_async(calculate_fitness, [self.model, gParams])
+        fname = self.model.create_input_file(fixAll=True)
+        runString = "./imfit -c %s %s " % (fname, gParams.fitsToFit)
+        runString += "--readnoise=%1.2f " % (gParams.readNoise)
+        runString += " --nm --max-threads 1 "
+        runString += " --save-params /dev/null "
+        if gParams.PSF != "none":
+            runString += " --psf %s " % (gParams.PSF)
+        if gParams.mask != "none":
+            runString += " --mask %s" % (gParams.mask)
+        runString += " ; rm %s " % (fname)
+        result = pool.apply_async(run_imfit_parallel, [runString])
+        self.chisq = result
 
     def fitness(self):
-        return self.result.get()
+        return self.chisq.get()
 
     def save_results(self, outFile):
         fname = self.model.create_input_file(fixAll=True)
@@ -63,28 +70,25 @@ class Converger(MendelOrganism):
 
     def run_lm_optimisation(self, ident):
         fname = "./results/%i_lm_input.dat" % (ident)
+        genome = {}
+        for key in self.genes.keys():
+            genome[key] = self[key]
+        self.model.genome_to_model(genome)
         self.model.create_input_file(fname)
         runString = "./imfit -c %s %s " % (fname, gParams.fitsToFit)
         runString += "--readnoise=%1.2f " % (gParams.readNoise)
-        # runString += "--max-threads 1 "
+        runString += "--max-threads 1 "
         if gParams.PSF != "none":
             runString += " --psf %s " % (gParams.PSF)
         if gParams.mask != "none":
             runString += " --mask %s " % (gParams.mask)
-        runString += "--ftol 0.000001"
+        runString += "--ftol 0.01"
         runString += " --save-params ./results/%i_lm_result.dat " % (ident)
         runString += " --save-model ./results/%i_lm_model.fits " % (ident)
         runString += " --save-residual ./results/%i_lm_residual.fits " % (ident) 
         # runString += " ; rm %s" % (fname)
-        print "\n Starting L-M optimisation"
-        proc = subprocess.Popen(runString, stdout=subprocess.PIPE, shell=True)
-        proc.wait()
-        for line in proc.stdout:
-            if "mpfit status" in line:
-                print "L-M optimisation is finished with status:"
-                print " ".join(line.split()[6:])
-            if "Reduced Chi^2" in line:
-                print line
+        result = pool.apply_async(run_imfit_parallel, [runString])
+        return result
 
 
 if __name__ == '__main__':
@@ -101,6 +105,7 @@ if __name__ == '__main__':
     iGen = 0
     bestFitness = []
     avgFitness = []
+    print "Starting genetic algorithm"
     while 1:
         best = pop.best()
         ftns = best.get_fitness()
@@ -123,4 +128,22 @@ if __name__ == '__main__':
             break
         iGen += 1
         pop.gen()
-    best.run_lm_optimisation(iGen)
+
+    bestOrganisms = sorted(pop)[0:gParams.numOfCores]
+    print "\n Starting L-M optimisation"
+    result = [org.run_lm_optimisation(i) for i,org in enumerate(bestOrganisms)]
+    chiSqValues = [r.get() for r in result]
+    bestModelNumber = argmin(chiSqValues)
+    print "Chi.sq. of the best model = %1.3f" % (chiSqValues[bestModelNumber])
+    # Remove all models except the best one
+    for i in xrange(gParams.numOfCores):
+        if i != bestModelNumber:
+            remove("./results/%i_lm_input.dat" % i)
+            remove("./results/%i_lm_result.dat" % i)
+            remove("./results/%i_lm_model.fits" % i)
+            remove("./results/%i_lm_residual.fits" % i)
+        else:
+            move("./results/%i_lm_input.dat" % i, "./results/input.dat" % i)
+            move("./results/%i_lm_result.dat" % i, "./results/result.dat")
+            move("./results/%i_lm_model.fits" % i, "./results/model.fits")
+            move("./results/%i_lm_residual.fits" % i, "./results/residual.fits")

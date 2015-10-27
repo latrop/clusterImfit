@@ -3,10 +3,10 @@ Fits           galaxy.fits    # Fits file with galaxy
 PSF            psf.fits       # File with psf or 'none'
 Mask           mask.fits      # Mask file or 'none'
 ZeroGenSize    20             # Size of random zero generation
-Popsize        10             # Size of i-th generation
-selectNbest    3            # Number best species selected in the generation
-addNew          5             # Add this many random species in each generation
-maxGenNumber  10            # Maximum number of generation
+Popsize        20             # Size of i-th generation
+selectNbest    8            # Number of best organisms selected in the generation
+addNew         1             # Add this many random organisms in each generation
+maxGenNumber  5            # Maximum number of generation
 readNoise     4.3             # Readnoise of an image
-fTol          0.1           # Relative fitness change for stop condition
+fTol          0.01           # Relative fitness change for stop condition
 fSpan           2             # How many generations in a row have to have improvement less than fTol to raise the stop condition

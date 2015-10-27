@@ -69,6 +69,7 @@ class ImfitModel(object):
         print "Reading '%s':" % (modelFileName)
         # Read imfit input file
         self.listOfFunctions = []
+        self.numberOfParams = 0
         funcName = None
         ident = -1
         for line in open(modelFileName):
@@ -95,15 +96,17 @@ class ImfitModel(object):
                 currentFunction = ImfitFunction(funcName, ident)
                 currentFunction.add_parameter(x0)
                 currentFunction.add_parameter(y0)
+                self.numberOfParams += 2
             else:
                 # If line does not contain nor coordinates nor function name
                 # then in has to be a parameter line
                 param = parse_imfit_line(sLine)
                 currentFunction.add_parameter(param)
+                self.numberOfParams += 1
         # append the last function
         self.listOfFunctions.append(currentFunction)
         # Print some statistics
-        print "  %i functions found\n" % len(self.listOfFunctions)
+        print "  %i functions found (%i parameters)\n" % (len(self.listOfFunctions), self.numberOfParams)
 
     def get_func_by_uname(self, uname):
         for func in self.listOfFunctions:
