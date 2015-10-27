@@ -9,13 +9,17 @@ is the one with best chi squared among results of LM-optimisation.
 
 # GA stopping conditions
 1) Maximum number of iterations is reached (**maxGenNumber** parameter in config).
+
 2) Relative improvement in both best model and average generation fitness is less
-then *fTol* for at least **fSpan** last generations.
+then **fTol** for at least **fSpan** last generations.
 
 # Usage
 1) Place in the program directory a valid imfit input file
+
 2) Place in the program directory fits files (object and (optional) psf and mask)
+
 3) Configure program with config file. All parameter names are explained in the example of the config.
+
 4) Run cluster_imfit.py without arguments.
 
 Results will be in 'results' directory. 'results/generations' directory will contain one best
