@@ -82,7 +82,7 @@ class Converger(MendelOrganism):
             runString += " --psf %s " % (gParams.PSF)
         if gParams.mask != "none":
             runString += " --mask %s " % (gParams.mask)
-        runString += "--ftol 0.01"
+        runString += "--ftol 0.00001"
         runString += " --save-params ./results/%i_lm_result.dat " % (ident)
         runString += " --save-model ./results/%i_lm_model.fits " % (ident)
         runString += " --save-residual ./results/%i_lm_residual.fits " % (ident) 

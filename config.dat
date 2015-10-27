@@ -8,5 +8,5 @@ selectNbest    8            # Number of best organisms selected in the generatio
 addNew         1             # Add this many random organisms in each generation
 maxGenNumber  5            # Maximum number of generation
 readNoise     4.3             # Readnoise of an image
-fTol          0.01           # Relative fitness change for stop condition
-fSpan           2             # How many generations in a row have to have improvement less than fTol to raise the stop condition
+fTol          0.001           # Relative fitness change for stop condition
+fSpan           5            # How many generations in a row have to have improvement less than fTol to raise the stop condition
