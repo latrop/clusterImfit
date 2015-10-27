@@ -71,7 +71,7 @@ class Converger(MendelOrganism):
             runString += " --psf %s " % (gParams.PSF)
         if gParams.mask != "none":
             runString += " --mask %s " % (gParams.mask)
-        runString += "--ftol 0.001"
+        runString += "--ftol 0.000001"
         runString += " --save-params ./results/%i_lm_result.dat " % (ident)
         runString += " --save-model ./results/%i_lm_model.fits " % (ident)
         runString += " --save-residual ./results/%i_lm_residual.fits " % (ident) 
@@ -105,17 +105,19 @@ if __name__ == '__main__':
         best = pop.best()
         ftns = best.get_fitness()
         avgFtns = pop.fitness()
-        print "generation %s: best=%s average=%s" % (iGen, ftns, avgFtns)
+        print "generation %i: best=%5.2f average=%5.2f" % (iGen, ftns, avgFtns),
         bestFitness.append(ftns)
         avgFitness.append(avgFtns)
         best.save_results("./results/generations/gen_%03i.fits" % (iGen))
         if (iGen > gParams.fSpan):
             relBestFitnessChange = abs(bestFitness[-1] - bestFitness[-gParams.fSpan]) / bestFitness[-1]
             relAvgFitnessChange = abs(avgFitness[-1]-avgFitness[-gParams.fSpan]) / avgFitness[-1]
-            print relBestFitnessChange, relAvgFitnessChange
+            print " (delta=%1.3e)" % (max(relBestFitnessChange, relAvgFitnessChange))
             if  (relBestFitnessChange < gParams.fTol) and (relAvgFitnessChange < gParams.fTol):
                 print "\n Method converged"
                 break
+        else:
+            print
         if iGen >= gParams.maxGenNumber:
             print "\n Maximum number of generation reached."
             break
