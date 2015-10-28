@@ -34,7 +34,7 @@ class Converger(MendelOrganism):
     """
     Implements the organism which tries to converge a function
     """
-    model = ImfitModel("input.dat")
+    model = ImfitModel(sys.argv[1])
     genome = model.create_genome()
     def prepare_fitness(self):
         genome = {}

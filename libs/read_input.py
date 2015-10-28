@@ -13,12 +13,15 @@ def parse_imfit_line(line):
     name = params[0]
     value = float(params[1]) # Value of the parameter is the second entry of the line
     # (after the name)
-    # Lets now find range of values. Its have to contain the coma and mast
-    # be the second enrty (otherwise imfin wont work)
-    rangeParams = params[2].split(",")
-
-    lowerLim = float(rangeParams[0])
-    upperLim = float(rangeParams[1])
+    # Lets now find range of values. Its have to contain the coma and must
+    # be the second enrty (otherwise imfin wont work).
+    # Some parameters can be fixed, so we have to check this possibility at first
+    if "fixed" in params[2]:
+        lowerLim = upperLim = None
+    else:
+        rangeParams = params[2].split(",")
+        lowerLim = float(rangeParams[0])
+        upperLim = float(rangeParams[1])
 	    
     return ImfitParameter(name, value, lowerLim, upperLim)
 
@@ -31,17 +34,22 @@ class ImfitParameter(object):
         self.value = value
         self.lowerLim = lowerLim
         self.upperLim = upperLim
+        if lowerLim is None:
+            self.fixed = True
+        else:
+            self.fixed = False
     def tostring(self, fixAll):
-        if fixAll:
+        if fixAll or self.fixed:
             return "{:12}{:6.2f}     fixed\n".format(self.name, self.value)
         else:
             return "{:12}{:6.2f}{:12.2f},{:1.2f}\n".format(self.name, self.value, self.lowerLim, self.upperLim)
     def change_value(self, newValue):
         self.value = newValue
-        if self.lowerLim > newValue:
-            self.lowerLim = newValue - newValue*0.001
-        if self.upperLim < newValue:
-            self.upperLim = newValue + newValue*0.001
+        if not self.fixed:
+            if self.lowerLim > newValue:
+                self.lowerLim = newValue - newValue*0.001
+            if self.upperLim < newValue:
+                self.upperLim = newValue + newValue*0.001
 
 
 class ImfitFunction(object):
@@ -140,13 +148,14 @@ class ImfitModel(object):
         genome = {}
         for func in self.listOfFunctions:
             for par in func.params:
-                class ParamGene(FloatGeneMax):
-                    randMin = par.lowerLim
-                    randMax = par.upperLim
-                    mutProb = 0.5
-                    mutAmt = 0.01
-                genomeClasses.append(ParamGene)
-                genome[func.uname+":"+par.name] = ParamGene
+                if not par.fixed:
+                    class ParamGene(FloatGeneMax):
+                        randMin = par.lowerLim
+                        randMax = par.upperLim
+                        mutProb = 0.5
+                        mutAmt = 0.01
+                    genomeClasses.append(ParamGene)
+                    genome[func.uname+":"+par.name] = ParamGene
         return genome
 
     def genome_to_model(self, genome):
@@ -173,6 +182,7 @@ class GeneralParams(object):
                 sLine = sLine[:sLine.index("#")].strip()
             if sLine.startswith("numOfCores"):
                 self.numOfCores = int(sLine.split()[1])
+                continue
             if sLine.startswith("Fits"):
                 self.fitsToFit = sLine.split()[1]
                 continue
@@ -224,5 +234,5 @@ class GeneralParams(object):
             if sLine.startswith("addImfitStr"):
                 if sLine.split()[1] != "none":
                     self.addImfitStr = sLine.split('"')[1]
-                else
-                self.addImfitStr = " "
+                else:
+                    self.addImfitStr = " "
