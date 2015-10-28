@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 import copy
-
+import sys
 import os
 from multiprocessing import Pool
 import subprocess
@@ -9,11 +9,10 @@ from shutil import move
 
 from numpy import argmin
 
-from pygene.gene import FloatGene, FloatGeneMax
-from pygene.organism import Organism, MendelOrganism
-from pygene.population import Population
-
 from libs.read_input import ImfitModel, GeneralParams
+from libs.pygene.gene import FloatGene, FloatGeneMax
+from libs.pygene.organism import Organism, MendelOrganism
+from libs.pygene.population import Population
 
 
 def remove(pth):
@@ -31,7 +30,6 @@ def run_imfit_parallel(runString):
     return chisq
 
 
-#def create_Converger_class(model):
 class Converger(MendelOrganism):
     """
     Implements the organism which tries to converge a function
@@ -44,14 +42,17 @@ class Converger(MendelOrganism):
             genome[key] = self[key]
         self.model.genome_to_model(genome)
         fname = self.model.create_input_file(fixAll=True)
-        runString = "./imfit -c %s %s " % (fname, gParams.fitsToFit)
-        runString += "--readnoise=%1.2f " % (gParams.readNoise)
+        runString = "%simfit -c %s %s " % (gParams.imfitPath, fname, gParams.fitsToFit)
         runString += " --nm --max-threads 1 "
         runString += " --save-params /dev/null "
         if gParams.PSF != "none":
             runString += " --psf %s " % (gParams.PSF)
         if gParams.mask != "none":
-            runString += " --mask %s" % (gParams.mask)
+            runString += " --mask %s " % (gParams.mask)
+        if gParams.weight != "none":
+            runString += " --noise %s " % (gParams.weight)
+        if gParams.readNoise != "none":
+            runString += " --readnoise=%1.2f " % (gParams.readNoise)
         runString += " ; rm %s " % (fname)
         result = pool.apply_async(run_imfit_parallel, [runString])
         self.chisq = result
@@ -61,7 +62,7 @@ class Converger(MendelOrganism):
 
     def save_results(self, outFile):
         fname = self.model.create_input_file(fixAll=True)
-        runString = "./makeimage %s --refimage %s " % (fname, gParams.fitsToFit)
+        runString = "%smakeimage %s --refimage %s " % (gParams.imfitPath, fname, gParams.fitsToFit)
         if gParams.PSF != "none":
             runString += " --psf %s " % (gParams.PSF)
         runString += "--output %s ; rm %s" % (outFile, fname)
@@ -75,13 +76,16 @@ class Converger(MendelOrganism):
             genome[key] = self[key]
         self.model.genome_to_model(genome)
         self.model.create_input_file(fname)
-        runString = "./imfit -c %s %s " % (fname, gParams.fitsToFit)
-        runString += "--readnoise=%1.2f " % (gParams.readNoise)
-        runString += "--max-threads 1 "
+        runString = "%simfit -c %s %s " % (gParams.imfitPath, fname, gParams.fitsToFit)
+        runString += " --max-threads 1 "
         if gParams.PSF != "none":
             runString += " --psf %s " % (gParams.PSF)
         if gParams.mask != "none":
             runString += " --mask %s " % (gParams.mask)
+        if gParams.weight != "none":
+            runString += " --noise %s " % (gParams.weight)
+        if gParams.readNoise != "none":
+            runString += " --readnoise=%1.2f " % (gParams.readNoise)
         runString += "--ftol 0.00001"
         runString += " --save-params ./results/%i_lm_result.dat " % (ident)
         runString += " --save-model ./results/%i_lm_model.fits " % (ident)

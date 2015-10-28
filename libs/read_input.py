@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 
 import uuid
-
-from pygene.gene import FloatGene, FloatGeneMax, IntGene
-from pygene.organism import Organism, MendelOrganism
+import sys
+from libs.pygene.gene import FloatGene, FloatGeneMax, IntGene
+from libs.pygene.organism import Organism, MendelOrganism
 
 
 def parse_imfit_line(line):
@@ -16,8 +16,10 @@ def parse_imfit_line(line):
     # Lets now find range of values. Its have to contain the coma and mast
     # be the second enrty (otherwise imfin wont work)
     rangeParams = params[2].split(",")
+
     lowerLim = float(rangeParams[0])
     upperLim = float(rangeParams[1])
+	    
     return ImfitParameter(name, value, lowerLim, upperLim)
 
 
@@ -180,6 +182,9 @@ class GeneralParams(object):
             if sLine.startswith("Mask"):
                 self.mask = sLine.split()[1]
                 continue
+            if sLine.startswith("Weight"):
+                self.weight = sLine.split()[1]
+                continue
             if sLine.startswith("Popsize"):
                 self.popSize = int(sLine.split()[1])
                 continue
@@ -193,7 +198,16 @@ class GeneralParams(object):
                 self.addNew = int(sLine.split()[1])
                 continue
             if sLine.startswith("readNoise"):
-                self.readNoise = float(sLine.split()[1])
+                if sLine.split()[1] == "none":
+                    self.readNoise == "none"
+                else:
+                    self.readNoise = float(sLine.split()[1])
+                continue
+            if sLine.startswith("gain"):
+                if sLine.split()[1] == "none":
+                    self.gain = "none"
+                else:
+                    self.gain = float(sLine.split()[1])
                 continue
             if sLine.startswith("maxGenNumber"):
                 self.maxGenNumber = int(sLine.split()[1])
@@ -203,3 +217,6 @@ class GeneralParams(object):
                 continue
             if sLine.startswith("fSpan"):
                 self.fSpan = int(sLine.split()[1])
+                continue
+            if sLine.startswith("imfitPath"):
+                self.imfitPath = sLine.split()[1]
