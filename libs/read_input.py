@@ -220,3 +220,9 @@ class GeneralParams(object):
                 continue
             if sLine.startswith("imfitPath"):
                 self.imfitPath = sLine.split()[1]
+                continue
+            if sLine.startswith("addImfitStr"):
+                if sLine.split()[1] != "none":
+                    self.addImfitStr = sLine.split('"')[1]
+                else
+                self.addImfitStr = " "
