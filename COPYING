@@ -1,0 +1,6 @@
+ClusterImfit is written by Sergey Savchenko <savchenko.s.s@gmail.com>.
+ClusterImfit is released under the GNU General Public License version 2, the
+text of which is available from the GNU Website: http://www.gnu.org
+
+This package contains parts of PyGene library https://github.com/blaa/PyGene 
+written by David McNab.
