@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import uuid
+from os import getcwd
 import sys
 from libs.pygene.gene import FloatGene, FloatGeneMax, IntGene
 from libs.pygene.organism import Organism, MendelOrganism
@@ -125,7 +126,7 @@ class ImfitModel(object):
 
     def create_input_file(self, fileName=None, fixAll=False):
         if fileName is None:
-            fileName = "temp_%s.dat" % (uuid.uuid4())
+            fileName = "%s/results/temp_%s.dat" % (getcwd(), uuid.uuid4())
         fout = open(fileName, "w")
         fout.truncate(0)
         for func in self.listOfFunctions:

@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 
-import copy
 import sys
 import os
+from os import getcwd
 from multiprocessing import Pool
 import subprocess
 from shutil import move
@@ -73,7 +73,7 @@ class Converger(MendelOrganism):
         proc.wait()
 
     def run_lm_optimisation(self, ident):
-        fname = "./results/%i_lm_input.dat" % (ident)
+        fname = "%s/results/%i_lm_input.dat" % (getcwd(), ident)
         genome = {}
         for key in self.genes.keys():
             genome[key] = self[key]
@@ -91,10 +91,10 @@ class Converger(MendelOrganism):
             runString += " --readnoise=%1.2f " % (gParams.readNoise)
         if gParams.gain != "none":
             runString += " --gain=%1.2f " % (gParams.readNoise)
-        runString += "--ftol 0.00001"
-        runString += " --save-params ./results/%i_lm_result.dat " % (ident)
-        runString += " --save-model ./results/%i_lm_model.fits " % (ident)
-        runString += " --save-residual ./results/%i_lm_residual.fits " % (ident) 
+        runString += "--ftol 0.1"
+        runString += " --save-params %s/results/%i_lm_result.dat " % (getcwd(), ident)
+        runString += " --save-model %s/results/%i_lm_model.fits " % (getcwd(), ident)
+        runString += " --save-residual %s/results/%i_lm_residual.fits " % (getcwd(), ident) 
         runString += " %s " % (gParams.addImfitStr)
         # runString += " ; rm %s" % (fname)
         result = pool.apply_async(run_imfit_parallel, [runString])
@@ -108,8 +108,8 @@ if __name__ == '__main__':
                      childCull=gParams.selectNbest,
                      numNewOrganisms=gParams.addNew)
 
-    if not os.path.exists("./results/generations/"):
-        os.makedirs("./results/generations/")
+    if not os.path.exists("%s/results/generations/" % getcwd()):
+        os.makedirs("%s/results/generations/" % getcwd())
     pool = Pool(gParams.numOfCores)
 
     iGen = 0
@@ -123,7 +123,7 @@ if __name__ == '__main__':
         print "generation %i: best=%5.2f average=%5.2f" % (iGen, ftns, avgFtns),
         bestFitness.append(ftns)
         avgFitness.append(avgFtns)
-        best.save_results("./results/generations/gen_%03i.fits" % (iGen))
+        best.save_results("%s/results/generations/gen_%03i.fits" % (getcwd(), iGen))
         if (iGen > gParams.fSpan):
             relBestFitnessChange = abs(bestFitness[-1] - bestFitness[-gParams.fSpan]) / bestFitness[-1]
             relAvgFitnessChange = abs(avgFitness[-1]-avgFitness[-gParams.fSpan]) / avgFitness[-1]
@@ -148,12 +148,12 @@ if __name__ == '__main__':
     # Remove all models except the best one
     for i in xrange(gParams.numOfCores):
         if i != bestModelNumber:
-            remove("./results/%i_lm_input.dat" % i)
-            remove("./results/%i_lm_result.dat" % i)
-            remove("./results/%i_lm_model.fits" % i)
-            remove("./results/%i_lm_residual.fits" % i)
+            remove("%s/results/%i_lm_input.dat" % (getcwd(), i))
+            remove("%s/results/%i_lm_result.dat" % (getcwd(), i))
+            remove("%s/results/%i_lm_model.fits" % (getcwd(), i))
+            remove("%s/results/%i_lm_residual.fits" % (getcwd(), i))
         else:
-            move("./results/%i_lm_input.dat" % i, "./results/input.dat" % i)
-            move("./results/%i_lm_result.dat" % i, "./results/result.dat")
-            move("./results/%i_lm_model.fits" % i, "./results/model.fits")
-            move("./results/%i_lm_residual.fits" % i, "./results/residual.fits")
+            move("%s/results/%i_lm_input.dat" % (getcwd(), i), "%s/results/input.dat" % (getcwd()))
+            move("%s/results/%i_lm_result.dat" % (getcwd(), i), "%s/results/result.dat" % getcwd())
+            move("%s/results/%i_lm_model.fits" % (getcwd(), i), "%s/results/model.fits" % getcwd())
+            move("%s/results/%i_lm_residual.fits" % (getcwd(), i), "%s/results/residual.fits" % getcwd())
