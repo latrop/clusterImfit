@@ -91,7 +91,7 @@ class Converger(MendelOrganism):
             runString += " --readnoise=%1.2f " % (gParams.readNoise)
         if gParams.gain != "none":
             runString += " --gain=%1.2f " % (gParams.readNoise)
-        runString += "--ftol 0.1"
+        runString += "--ftol 0.000001"
         runString += " --save-params %s/results/%i_lm_result.dat " % (getcwd(), ident)
         runString += " --save-model %s/results/%i_lm_model.fits " % (getcwd(), ident)
         runString += " --save-residual %s/results/%i_lm_residual.fits " % (getcwd(), ident) 

@@ -1,0 +1,8 @@
+Changelog for ClusterImfit
+
+	28.10.2015
+
+	* PyGene module added locally
+	* Fixed parameters are allowed now
+	* The name of the input file with model is the first argument now
+	* A bunch of new parameters was added to the config file (see the list in exmaple of the config file)
