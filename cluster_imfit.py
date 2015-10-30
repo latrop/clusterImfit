@@ -43,7 +43,7 @@ class Converger(MendelOrganism):
         self.model.genome_to_model(genome)
         fname = self.model.create_input_file(fixAll=True)
         runString = "%simfit -c %s %s " % (gParams.imfitPath, fname, gParams.fitsToFit)
-        runString += " --nm --max-threads 1 "
+        runString += " --fitstat-only --max-threads 1 "
         runString += " --save-params /dev/null "
         if gParams.PSF != "none":
             runString += " --psf %s " % (gParams.PSF)
@@ -91,7 +91,7 @@ class Converger(MendelOrganism):
             runString += " --readnoise=%1.2f " % (gParams.readNoise)
         if gParams.gain != "none":
             runString += " --gain=%1.2f " % (gParams.readNoise)
-        runString += "--ftol 0.000001"
+        runString += "--ftol 0.00001"
         runString += " --save-params %s/results/%i_lm_result.dat " % (getcwd(), ident)
         runString += " --save-model %s/results/%i_lm_model.fits " % (getcwd(), ident)
         runString += " --save-residual %s/results/%i_lm_residual.fits " % (getcwd(), ident) 

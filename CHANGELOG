@@ -6,3 +6,6 @@ Changelog for ClusterImfit
 	* Fixed parameters are allowed now
 	* The name of the input file with model is the first argument now
 	* A bunch of new parameters was added to the config file (see the list in exmaple of the config file)
+
+	30.10.2015
+	* Computation of chi squared is being performed now with --fitstat-only key
