@@ -17,7 +17,8 @@ def parse_imfit_line(line):
     # Lets now find range of values. Its have to contain the coma and must
     # be the second enrty (otherwise imfin wont work).
     # Some parameters can be fixed, so we have to check this possibility at first
-    if "fixed" in params[2]:
+    if (len(params) == 2) or ("fixed" in params[2]) :
+        # No bounds specified at all or fixed value
         lowerLim = upperLim = None
     else:
         rangeParams = params[2].split(",")
@@ -87,6 +88,9 @@ class ImfitModel(object):
             sLine = line.strip()
             if sLine.startswith("#"):
                 # It is a comment line, just skip it
+                continue
+            if len(sLine) == 0:
+                "Empty line"
                 continue
             if "#" in sLine:
                 # Drop the comment part of the line if exists
@@ -168,6 +172,20 @@ class ImfitModel(object):
                 if par.name == parName:
                     par.change_value(genome[gene])
 
+    def check_boundaries(self, resModel):
+        """ Method takes other model object and checks if its parameter
+        values are close to the parameter limiths of the self model"""
+        badParams = []
+        for selfFunc, resFunc in zip(self.listOfFunctions, resModel.listOfFunctions):
+            for selfParam, resParam in zip(selfFunc.params, resFunc.params):
+                if selfParam.fixed:
+                    # Fixed parameter, so it does not have boundaries. Nothing to check.
+                    continue
+                parRange = selfParam.upperLim - selfParam.lowerLim
+                eps = parRange / 1000.0
+                if (abs(resParam.value-selfParam.upperLim)<eps) or (abs(resParam.value-selfParam.lowerLim)<eps):
+                    badParams.append("%s: %s" % (selfFunc.name, selfParam.name))
+        return badParams
 
 class GeneralParams(object):
     """ Input parameters unrelated to imfit (input image, size of the

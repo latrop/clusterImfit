@@ -144,7 +144,7 @@ if __name__ == '__main__':
     result = [org.run_lm_optimisation(i) for i,org in enumerate(bestOrganisms)]
     chiSqValues = [r.get() for r in result]
     bestModelNumber = argmin(chiSqValues)
-    print "Chi.sq. of the best model = %1.3f" % (chiSqValues[bestModelNumber])
+    print "\nChi.sq. of the best model = %1.3f" % (chiSqValues[bestModelNumber])
     # Remove all models except the best one
     for i in xrange(gParams.numOfCores):
         if i != bestModelNumber:
@@ -157,3 +157,18 @@ if __name__ == '__main__':
             move("%s/results/%i_lm_result.dat" % (getcwd(), i), "%s/results/result.dat" % getcwd())
             move("%s/results/%i_lm_model.fits" % (getcwd(), i), "%s/results/model.fits" % getcwd())
             move("%s/results/%i_lm_residual.fits" % (getcwd(), i), "%s/results/residual.fits" % getcwd())
+
+    print "\nChecking boundaries\n"
+    # Load resulting model
+    resModel = ImfitModel("%s/results/result.dat" % getcwd())
+    # Check boundaries
+    badParams = best.model.check_boundaries(resModel)
+    if badParams:
+        fbad = open("%s/results/bad_params.dat" % getcwd(), "w")
+        fbad.truncate(0)
+        print "Warging: these parameters have values that are close to their boundaries:"
+        for p in badParams:
+            print p
+            fbad.write("%s\n" % p)
+    else:
+        print "All parameters are inside of their boundaries"

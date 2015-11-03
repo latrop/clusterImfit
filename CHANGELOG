@@ -9,3 +9,6 @@ Changelog for ClusterImfit
 
 	30.10.2015
 	* Computation of chi squared is being performed now with --fitstat-only key
+
+	3.11.2015
+	* Checking if resulting parameters are close to their boundaries given in the input file
