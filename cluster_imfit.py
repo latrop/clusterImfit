@@ -54,7 +54,7 @@ class Converger(MendelOrganism):
         if gParams.readNoise != "none":
             runString += " --readnoise=%1.2f " % (gParams.readNoise)
         if gParams.gain != "none":
-            runString += " --gain=%1.2f " % (gParams.readNoise)
+            runString += " --gain=%1.2f " % (gParams.gain)
         runString += " %s " % (gParams.addImfitStr)
         runString += " ; rm %s " % (fname)
         result = pool.apply_async(run_imfit_parallel, [runString])
@@ -90,7 +90,7 @@ class Converger(MendelOrganism):
         if gParams.readNoise != "none":
             runString += " --readnoise=%1.2f " % (gParams.readNoise)
         if gParams.gain != "none":
-            runString += " --gain=%1.2f " % (gParams.readNoise)
+            runString += " --gain=%1.2f " % (gParams.gain)
         runString += "--ftol 0.00001"
         runString += " --save-params %s/results/%i_lm_result.dat " % (getcwd(), ident)
         runString += " --save-model %s/results/%i_lm_model.fits " % (getcwd(), ident)
