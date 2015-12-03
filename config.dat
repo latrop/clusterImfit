@@ -1,16 +1,20 @@
 numOfCores     4              # Number of cores to scatter computations
-Fits           mkn501.fits  # Fits file with galaxy
-PSF            psf.fits      # File with psf or 'none'
+Fits           cropped_r.fits  # Fits file with galaxy
+PSF            psf_r.fits      # File with psf or 'none'
 Mask           mask.fits       # Mask file or 'none'
 Weight         none            # Weight image
-readNoise      100             # Readnoise of an image
-gain           1.0             # Gain value
-ZeroGenSize    100             # Size of random zero generation
-Popsize        120             # Size of i-th generation
-selectNbest     30            # Number of best organisms selected in the generation
-addNew           5             # Add this many random organisms in each generation
-maxGenNumber   20             # Maximum number of generation
+readNoise      5.18             # Readnoise of an image
+gain           4.63             # Gain value
+ZeroGenSize    10             # Size of random zero generation
+Popsize        10             # Size of i-th generation
+selectNbest     4             # Number of best organisms selected in the generation
+addNew           1             # Add this many random organisms in each generation
+maxGenNumber   3             # Maximum number of generation
 fTol          1e-5             # Relative fitness change for stop condition
-fSpan            5             # How many generations in a row have to have improvement less than fTol to raise the stop condition
+fSpan            2             # How many generations in a row have to have improvement less than fTol to raise the stop condition
 imfitPath     ./              # Path to imfit and makeimage binaries
 addImfitStr   none             # If you want to add some other options to imfit, place the string here between ""
+saveGens      no              # save image of the best model for each generation (yes/no)
+runLM          yes             # Run LM optimisation at the end. If no, just create a srcript to run it later (no/yes)
+numOfLM         2             # Number of LM model to run at the end
+LMCores         4             # Number of cores to use for each LM model

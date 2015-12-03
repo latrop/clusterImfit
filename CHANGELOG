@@ -12,3 +12,6 @@ Changelog for ClusterImfit
 
 	3.11.2015
 	* Checking if resulting parameters are close to their boundaries given in the input file
+
+	3.12.2015
+	* saveGens, runLM, numOfLM, LMCores parameters was added to the config file

@@ -255,3 +255,16 @@ class GeneralParams(object):
                     self.addImfitStr = sLine.split('"')[1]
                 else:
                     self.addImfitStr = " "
+                continue
+            if sLine.startswith("runLM"):
+                self.runLM = sLine.split()[1]
+                continue
+            if sLine.startswith("numOfLM"):
+                self.numOfLM = int(sLine.split()[1])
+                continue
+            if sLine.startswith("LMCores"):
+                self.LMCores = int(sLine.split()[1])
+                continue
+            if sLine.startswith("saveGens"):
+                self.saveGens = sLine.split()[1]
+                continue
