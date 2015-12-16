@@ -2,12 +2,14 @@
 
 import datetime
 import time
+import glob
 import sys
 import os
 from os import getcwd
 from multiprocessing import Pool
 import subprocess
 from shutil import move
+import uuid
 
 from numpy import argmin, isnan
 
@@ -22,13 +24,19 @@ def remove(pth):
         os.remove(pth)
 
 
-def run_imfit_parallel(runString):
+def run_imfit_parallel(runString, fname=None):
     chisq = 1e10
-    proc = subprocess.Popen(runString, stdout=subprocess.PIPE, shell=True)
-    for line in proc.stdout:
+    stdoutFileName ="%s/results/stdout_%s.dat" % (getcwd(), uuid.uuid4())
+    stdoutFile = open(stdoutFileName, "w")
+    proc = subprocess.Popen(runString, stdout=stdoutFile, shell=True)
+    proc.wait()
+    stdoutFile.close()
+    for line in open(stdoutFileName):
         if "Reduced Chi^2 =" in line:
             chisq = float(line.split()[3])
-    proc.wait()
+    remove(stdoutFileName)
+    if not fname is None:
+        remove(fname)
     return chisq
 
 
@@ -58,8 +66,7 @@ class Converger(MendelOrganism):
         if gParams.gain != "none":
             runString += " --gain=%1.2f " % (gParams.gain)
         runString += " %s " % (gParams.addImfitStr)
-        runString += " ; rm %s " % (fname)
-        result = pool.apply_async(run_imfit_parallel, [runString])
+        result = pool.apply_async(run_imfit_parallel, [runString, fname])
         self.chisq = result
 
     def fitness(self):
@@ -70,9 +77,10 @@ class Converger(MendelOrganism):
         runString = "%smakeimage %s --refimage %s " % (gParams.imfitPath, fname, gParams.fitsToFit)
         if gParams.PSF != "none":
             runString += " --psf %s " % (gParams.PSF)
-        runString += "--output %s ; rm %s" % (outFile, fname)
+        runString += "--output %s" % (outFile)
         proc = subprocess.Popen(runString, stdout=subprocess.PIPE, shell=True)
         proc.wait()
+        remove(fname)
 
     def run_lm_optimisation(self, ident):
         fname = "%s/results/%i_lm_input.dat" % (getcwd(), ident)
@@ -84,7 +92,7 @@ class Converger(MendelOrganism):
         # If we are NOT going to run LM optimisation right now, then
         # save run strings in a file for the future
         if gParams.runLM == "no":
-            script = open("./results/run_lm.sh", "a")
+            script = open("%s/results/run_lm.sh" % (getcwd()), "a")
             runString = "%simfit -c %i_lm_input.dat ../%s " % (gParams.imfitPath, ident, gParams.fitsToFit)
             if gParams.PSF != "none":
                 runString += " --psf ../%s " % (gParams.PSF)
@@ -135,7 +143,9 @@ if __name__ == '__main__':
                      childCull=gParams.selectNbest,
                      numNewOrganisms=gParams.addNew)
 
-    if not os.path.exists("%s/results/generations/" % getcwd()):
+    if not os.path.exists("%s/results" % getcwd()):
+        os.makedirs("%s/results" % getcwd())
+    if (gParams.saveGens == "yes") and (not os.path.exists("%s/results/generations/" % getcwd())):
         os.makedirs("%s/results/generations/" % getcwd())
     pool = Pool(gParams.numOfCores)
 
@@ -153,6 +163,7 @@ if __name__ == '__main__':
         logFile.write("generation %i: best=%5.2f average=%5.2f" % (iGen, ftns, avgFtns))
         bestFitness.append(ftns)
         avgFitness.append(avgFtns)
+
         if isnan(ftns) or isnan(avgFtns):
             print "\nNaN values found in model images. Aborting..."
             logFile.write("\nNaN values found in model images. Aborting...")
@@ -184,11 +195,11 @@ if __name__ == '__main__':
     logFile.write("Time spent: %s\n" % spentTimeString)
 
     if gParams.runLM == "no":
-        remove("./results/run_lm.sh")
+        remove("%s/results/run_lm.sh" % getcwd())
     else:
         print "\n Starting L-M optimisation"
         logFile.write("\n Starting L-M optimisation\n")
-    bestOrganisms = sorted(pop)[0:gParams.numOfLM]
+    bestOrganisms = sorted(pop)[0:gParams.numOfLM+1]
     result = [org.run_lm_optimisation(i) for i,org in enumerate(bestOrganisms)]
     if gParams.runLM == "yes":
         chiSqValues = [r.get() for r in result]
@@ -223,3 +234,4 @@ if __name__ == '__main__':
                 fbad.write("%s\n" % p)
         else:
             print "All parameters are inside of their boundaries"
+    time.sleep(1)
