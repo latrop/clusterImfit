@@ -15,3 +15,6 @@ Changelog for ClusterImfit
 
 	3.12.2015
 	* saveGens, runLM, numOfLM, LMCores parameters was added to the config file
+
+	23.01.2016
+	* model_to_text option is added

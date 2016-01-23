@@ -170,6 +170,8 @@ if __name__ == '__main__':
             exit(1)
         if gParams.saveGens == "yes":
             best.save_results("%s/results/generations/gen_%03i.fits" % (getcwd(), iGen))
+        if not gParams.genTextFile is None:
+            best.model.model_to_text(iGen, gParams.genTextFile)
         if (iGen > gParams.fSpan):
             relBestFitnessChange = abs(bestFitness[-1] - bestFitness[-gParams.fSpan]) / bestFitness[-1]
             relAvgFitnessChange = abs(avgFitness[-1]-avgFitness[-gParams.fSpan]) / avgFitness[-1]

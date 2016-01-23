@@ -2,6 +2,7 @@
 
 import uuid
 from os import getcwd
+from os.path import exists
 import sys
 from libs.pygene.gene import FloatGene, FloatGeneMax, IntGene
 from libs.pygene.organism import Organism, MendelOrganism
@@ -187,6 +188,25 @@ class ImfitModel(object):
                     badParams.append("%s: %s" % (selfFunc.name, selfParam.name))
         return badParams
 
+    def model_to_text(self, genNumber, textFile):
+        """ Method saves current values of model parameters to a text file """
+        if not exists(textFile):
+            fout = open(textFile, "w", buffering=0)
+            # Create a header as a first line of a file
+            fout.write("# genNumber ")
+            for func in self.listOfFunctions:
+                for param in func.params:
+                    fout.write("  %s.%s" % (func.uname, param.name))
+            fout.write("\n")
+        else:
+            fout = open(textFile, "a", buffering=0)
+        fout.write("%i " % genNumber)
+        for func in self.listOfFunctions:
+            for param in func.params:
+                fout.write("  %9.3f" % param.value)
+        fout.write("\n")
+
+
 class GeneralParams(object):
     """ Input parameters unrelated to imfit (input image, size of the
     population etc.) """
@@ -268,3 +288,8 @@ class GeneralParams(object):
             if sLine.startswith("saveGens"):
                 self.saveGens = sLine.split()[1]
                 continue
+            if sLine.startswith("genTextFile"):
+                if sLine.split()[1] == "none":
+                    self.genTextFile == None
+                else:
+                    self.genTextFile = sLine.split()[1]
