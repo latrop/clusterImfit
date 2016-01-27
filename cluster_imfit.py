@@ -201,7 +201,7 @@ if __name__ == '__main__':
     else:
         print "\n Starting L-M optimisation"
         logFile.write("\n Starting L-M optimisation\n")
-    bestOrganisms = sorted(pop)[0:gParams.numOfLM+1]
+    bestOrganisms = sorted(pop)[0:gParams.numOfLM]
     result = [org.run_lm_optimisation(i) for i,org in enumerate(bestOrganisms)]
     if gParams.runLM == "yes":
         chiSqValues = [r.get() for r in result]
