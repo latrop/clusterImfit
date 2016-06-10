@@ -79,7 +79,7 @@ class ImfitFunction(object):
 class ImfitModel(object):
     """Imfit functions and their parameters"""
     def __init__(self, modelFileName):
-        print "Reading '%s':" % (modelFileName)
+        print("Reading '%s':" % (modelFileName))
         # Read imfit input file
         self.listOfFunctions = []
         self.numberOfParams = 0
@@ -122,7 +122,7 @@ class ImfitModel(object):
         # append the last function
         self.listOfFunctions.append(currentFunction)
         # Print some statistics
-        print "  %i functions found (%i parameters)\n" % (len(self.listOfFunctions), self.numberOfParams)
+        print("  %i functions found (%i parameters)\n" % (len(self.listOfFunctions), self.numberOfParams))
 
     def get_func_by_uname(self, uname):
         for func in self.listOfFunctions:
@@ -141,7 +141,7 @@ class ImfitModel(object):
             for par in func.params[2:]:
                 fout.write(par.tostring(fixAll))
         fout.close()
-        # print "Model was saved to '%s'\n" % (fileName)
+        # print("Model was saved to '%s'\n" % (fileName))
         return fileName
 
     def create_genome(self):
@@ -188,19 +188,19 @@ class ImfitModel(object):
                     badParams.append("%s: %s" % (selfFunc.name, selfParam.name))
         return badParams
 
-    def model_to_text(self, genNumber, textFile):
+    def model_to_text(self, genNumber, ftns, textFile):
         """ Method saves current values of model parameters to a text file """
         if not exists(textFile):
-            fout = open(textFile, "w", buffering=0)
+            fout = open(textFile, "w", buffering=1)
             # Create a header as a first line of a file
-            fout.write("# genNumber ")
+            fout.write("# genNumber   fintess")
             for func in self.listOfFunctions:
                 for param in func.params:
                     fout.write("  %s.%s" % (func.uname, param.name))
             fout.write("\n")
         else:
-            fout = open(textFile, "a", buffering=0)
-        fout.write("%i " % genNumber)
+            fout = open(textFile, "a", buffering=1)
+        fout.write("%i   %1.3f" % (genNumber, ftns))
         for func in self.listOfFunctions:
             for param in func.params:
                 fout.write("  %9.3f" % param.value)

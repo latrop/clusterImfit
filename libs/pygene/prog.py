@@ -53,9 +53,9 @@ class FuncNode(BaseNode):
         # and fill in the args, from given, or randomly
         if not children:
             if typed:
-                children = [org.genNode(depth+1, typed[1+i]) for i in xrange(nargs)]
+                children = [org.genNode(depth+1, typed[1+i]) for i in range(nargs)]
             else:
-                children = [org.genNode(depth+1) for i in xrange(nargs)]
+                children = [org.genNode(depth+1) for i in range(nargs)]
 
         self.type = org.type and typed[0] or None
         self.argtype = org.type and typed[1:] or []
@@ -111,9 +111,9 @@ class FuncNode(BaseNode):
                         "  Expected %s found %s (%s) for function argument %d\n"
                         "  Tree:"
                     )
-                    print msg % (self.name, args, argtype, child.name, child.type, i + 1)
+                    print(msg % (self.name, args, argtype, child.name, child.type, i + 1))
                     self.org.tree.dump(1)
-                    print
+                    print("")
                     raise TypeError
 
         t = self.func(*args)
@@ -125,9 +125,9 @@ class FuncNode(BaseNode):
                 "Genetical programming type error:\n"
                 "  Function '%s' returned %s (%r) instead of type %r\n"
             )
-            print msg % (self.name, t, type(t), self.type)
+            print(msg % (self.name, t, type(t), self.type))
             self.org.tree.dump(1)
-            print
+            print("")
             raise TypeError
 
         return t
@@ -135,7 +135,7 @@ class FuncNode(BaseNode):
     def dump(self, level=0):
         indents = "  " * level
         #print indents + "func:" + self.name
-        print "%s%s" % (indents, self.name)
+        print("%s%s" % (indents, self.name))
         for child in self.children:
             child.dump(level+1)
 
@@ -154,12 +154,12 @@ class FuncNode(BaseNode):
                     "  children: %r\n"
                     "  child types: %r\n"
                 )
-                print msg % (self.name,
+                print(msg % (self.name,
                              self.argtype,
                              self.children,
-                             [c.type for c in self.children])
+                             [c.type for c in self.children]))
                 self.org.tree.dump(1)
-                print
+                print("")
                 raise TypeError
 
     def copy(self, doSplit=False):
@@ -213,7 +213,7 @@ class FuncNode(BaseNode):
         else:
             # delegate the split down to selected child
             clonedChildren = []
-            for i in xrange(self.nargs):
+            for i in range(self.nargs):
                 child = self.children[i]
                 if (i == childIdx):
                     # chosen child
@@ -286,7 +286,7 @@ class ConstNode(TerminalNode):
     def dump(self, level=0):
         indents = "  " * level
         #print "%sconst: {%s}" % (indents, self.value)
-        print "%s{%s}" % (indents, self.value)
+        print("%s{%s}" % (indents, self.value))
 
     def copy(self):
         """
@@ -335,7 +335,7 @@ class VarNode(TerminalNode):
 
         indents = "  " * level
         #print indents + "var {" + self.name + "}"
-        print "%s{%s}" % (indents, self.name)
+        print("%s{%s}" % (indents, self.name))
 
     def copy(self):
         """
@@ -430,7 +430,7 @@ class ProgOrganism(BaseOrganism):
             tries += 1
 
             if tries > 20:
-                print "Warning: Failed to swap trees for", tries, "times. Continuing..."
+                print("Warning: Failed to swap trees for", tries, "times. Continuing...")
                 return self.copy(), mate.copy()
 
             # Get copied trees
@@ -493,7 +493,7 @@ class ProgOrganism(BaseOrganism):
         try:
             return self.__class__(self.tree.copy())
         except:
-            print "self.__class__ = %s" % self.__class__
+            print("self.__class__ = %s" % self.__class__)
             raise
 
     def dump(self, node=None, level=1):
@@ -525,8 +525,8 @@ class ProgOrganism(BaseOrganism):
                     return f
             except TypeDoesNotExist:
                 if cnt > 50:
-                    print "Warning, probably an infinite loop"
-                    print "  your options does not allow for tree construction"
+                    print("Warning, probably an infinite loop")
+                    print("  your options does not allow for tree construction")
                 continue
 
 

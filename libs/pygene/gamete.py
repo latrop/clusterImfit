@@ -19,7 +19,7 @@ reproduction. Adding two gametes together produces
 a whole new Organism.
 """
 
-from xmlio import PGXmlMixin
+from .xmlio import PGXmlMixin
 
 class Gamete(PGXmlMixin):
     """

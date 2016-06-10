@@ -5,7 +5,7 @@ Mixin class to support pygene objects in
 loading/saving as xml
 """
 
-import StringIO
+from io import StringIO
 from xml.dom.minidom import getDOMImplementation, parse, parseString
 
 domimpl = getDOMImplementation()

@@ -18,3 +18,6 @@ Changelog for ClusterImfit
 
 	23.01.2016
 	* model_to_text option is added
+
+	10.06.2016
+	* Using Python 3 now!

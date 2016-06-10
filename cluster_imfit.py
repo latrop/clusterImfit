@@ -46,6 +46,7 @@ class Converger(MendelOrganism):
     """
     model = ImfitModel(sys.argv[1])
     genome = model.create_genome()
+    
     def prepare_fitness(self):
         genome = {}
         for key in self.genes.keys():
@@ -135,7 +136,8 @@ class Converger(MendelOrganism):
 
 
 if __name__ == '__main__':
-    logFile = open("%s/log.dat" % (getcwd()), "a", buffering=0)
+    logFileName = "%s/log.dat" % (getcwd())
+    logFile = open(logFileName, "a", buffering=1)
     logFile.write("\n\n\n################################\n")
     gParams = GeneralParams("config.dat")
     pop = Population(species=Converger, init=gParams.zeroGenSize,
@@ -153,39 +155,39 @@ if __name__ == '__main__':
     iGen = 0
     bestFitness = []
     avgFitness = []
-    print "Starting genetic algorithm"
+    print("Starting genetic algorithm")
     logFile.write("GA optimisation started at %s\n" % datetime.datetime.now().strftime("%d.%m.%Y %H:%M"))
     while 1:
         best = pop.best()
         ftns = best.get_fitness()
         avgFtns = pop.fitness()
-        print "generation %i: best=%5.2f average=%5.2f" % (iGen, ftns, avgFtns),
+        print("generation %i: best=%5.2f average=%5.2f" % (iGen, ftns, avgFtns), end='')
         logFile.write("generation %i: best=%5.2f average=%5.2f" % (iGen, ftns, avgFtns))
         bestFitness.append(ftns)
         avgFitness.append(avgFtns)
 
         if isnan(ftns) or isnan(avgFtns):
-            print "\nNaN values found in model images. Aborting..."
+            print("\nNaN values found in model images. Aborting...")
             logFile.write("\nNaN values found in model images. Aborting...")
             exit(1)
         if gParams.saveGens == "yes":
             best.save_results("%s/results/generations/gen_%03i.fits" % (getcwd(), iGen))
         if not gParams.genTextFile is None:
-            best.model.model_to_text(iGen, gParams.genTextFile)
+            best.model.model_to_text(iGen, ftns, gParams.genTextFile)
         if (iGen > gParams.fSpan):
             relBestFitnessChange = abs(bestFitness[-1] - bestFitness[-gParams.fSpan]) / bestFitness[-1]
             relAvgFitnessChange = abs(avgFitness[-1]-avgFitness[-gParams.fSpan]) / avgFitness[-1]
-            print " (delta=%1.3e)" % (max(relBestFitnessChange, relAvgFitnessChange))
+            print(" (delta=%1.3e)" % (max(relBestFitnessChange, relAvgFitnessChange)))
             logFile.write(" (delta=%1.3e)\n" % (max(relBestFitnessChange, relAvgFitnessChange)))
             if  (relBestFitnessChange < gParams.fTol) and (relAvgFitnessChange < gParams.fTol):
-                print "\n GA method converged"
+                print("\n GA method converged")
                 logFile.write("\n GA method converged\n")
                 break
         else:
-            print
+            print("")
             logFile.write("\n")
         if iGen >= gParams.maxGenNumber:
-            print "\n Maximum number of generation reached."
+            print("\n Maximum number of generation reached.")
             logFile.write("\n Maximum number of generation reached.\n")
             break
         iGen += 1
@@ -193,23 +195,23 @@ if __name__ == '__main__':
 
     timeSpentSec = time.time() - startTime
     spentTimeString = time.strftime("%Hh:%Mm:%Ss", time.gmtime(timeSpentSec))
-    print "Time spent: %s" % spentTimeString
+    print("Time spent: %s" % spentTimeString)
     logFile.write("Time spent: %s\n" % spentTimeString)
 
     if gParams.runLM == "no":
         remove("%s/results/run_lm.sh" % getcwd())
     else:
-        print "\n Starting L-M optimisation"
+        print("\n Starting L-M optimisation")
         logFile.write("\n Starting L-M optimisation\n")
     bestOrganisms = sorted(pop)[0:gParams.numOfLM]
     result = [org.run_lm_optimisation(i) for i,org in enumerate(bestOrganisms)]
     if gParams.runLM == "yes":
         chiSqValues = [r.get() for r in result]
         bestModelNumber = argmin(chiSqValues)
-        print "\nChi.sq. of the best model = %1.3f" % (chiSqValues[bestModelNumber])
+        print("\nChi.sq. of the best model = %1.3f" % (chiSqValues[bestModelNumber]))
         logFile.write("\nChi.sq. of the best model = %1.3f\n" % (chiSqValues[bestModelNumber]))
         # If LM optimisation was done then remove all models except the best one
-        for i in xrange(gParams.numOfLM):
+        for i in range(gParams.numOfLM):
             if i != bestModelNumber:
                 remove("%s/results/%i_lm_input.dat" % (getcwd(), i))
                 remove("%s/results/%i_lm_result.dat" % (getcwd(), i))
@@ -221,19 +223,22 @@ if __name__ == '__main__':
                 move("%s/results/%i_lm_model.fits" % (getcwd(), i), "%s/results/model.fits" % getcwd())
                 move("%s/results/%i_lm_residual.fits" % (getcwd(), i), "%s/results/residual.fits" % getcwd())
 
-        print "\nChecking boundaries\n"
+        print("\nChecking boundaries\n")
         # Load resulting model
         resModel = ImfitModel("%s/results/result.dat" % getcwd())
+        # Store final parameters to generations file
+        if not gParams.genTextFile is None:
+            resModel.model_to_text(iGen+1, chiSqValues[bestModelNumber], gParams.genTextFile)
         # Check boundaries
         badParams = best.model.check_boundaries(resModel)
         if badParams:
             fbad = open("%s/results/bad_params.dat" % getcwd(), "w")
             fbad.truncate(0)
-            print "Warging: these parameters have values that are close to their boundaries:"
+            print("Warging: these parameters have values that are close to their boundaries:")
             logFile.write("Warging: some parameters have values that are close to their boundaries (see 'bad_params.dat').\n")
             for p in badParams:
-                print p
+                print(p)
                 fbad.write("%s\n" % p)
         else:
-            print "All parameters are inside of their boundaries"
+            print("All parameters are inside of their boundaries")
     time.sleep(1)
