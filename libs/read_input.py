@@ -185,7 +185,7 @@ class ImfitModel(object):
                 parRange = selfParam.upperLim - selfParam.lowerLim
                 eps = parRange / 1000.0
                 if (abs(resParam.value-selfParam.upperLim)<eps) or (abs(resParam.value-selfParam.lowerLim)<eps):
-                    badParams.append("%s: %s" % (selfFunc.name, selfParam.name))
+                    badParams.append("%s(%i): %s" % (selfFunc.name, selfFunc.ident, selfParam.name))
         return badParams
 
     def model_to_text(self, genNumber, ftns, textFile):
