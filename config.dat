@@ -1,9 +1,9 @@
-numOfCores     16              # Number of cores to scatter computations
-Fits           cropped_r.fits  # Fits file with galaxy
-PSF            psf.fits      # File with psf or 'none'
-Mask           mask.fits       # Mask file or 'none'
+numOfCores     4              # Number of cores to scatter computations
+Fits           galaxy_TAN.fits  # Fits file with galaxy
+PSF            none      # File with psf or 'none'
+Mask           mask_combined_new.fits       # Mask file or 'none'
 Weight         none            # Weight image
-readNoise      1.00             # Readnoise of an image
+readNoise      1e6             # Readnoise of an image
 gain           1.00             # Gain value
 ZeroGenSize    300             # Size of random zero generation
 Popsize        250             # Size of i-th generation

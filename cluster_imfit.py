@@ -5,6 +5,7 @@ import time
 import glob
 import sys
 import os
+import argparse
 from os import getcwd
 from multiprocessing import Pool
 import subprocess
@@ -136,10 +137,14 @@ class Converger(MendelOrganism):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) < 3:
+        print("Usage: ./cluster_imfit.py  model.imfit config.dat")
+    
     logFileName = "%s/log.dat" % (getcwd())
     logFile = open(logFileName, "a", buffering=1)
     logFile.write("\n\n\n################################\n")
-    gParams = GeneralParams("config.dat")
+    
+    gParams = GeneralParams(sys.argv[2])
     pop = Population(species=Converger, init=gParams.zeroGenSize,
                      childCount=gParams.popSize,
                      childCull=gParams.selectNbest,
