@@ -193,7 +193,7 @@ class ImfitModel(object):
         if not exists(textFile):
             fout = open(textFile, "w", buffering=1)
             # Create a header as a first line of a file
-            fout.write("# genNumber   fintess")
+            fout.write("# genNumber   fitness")
             for func in self.listOfFunctions:
                 for param in func.params:
                     fout.write("  %s.%s" % (func.uname, param.name))

@@ -5,6 +5,8 @@ import time
 import glob
 import sys
 import os
+from os import path
+import argparse
 from os import getcwd
 from multiprocessing import Pool
 import subprocess
@@ -53,7 +55,8 @@ class Converger(MendelOrganism):
             genome[key] = self[key]
         self.model.genome_to_model(genome)
         fname = self.model.create_input_file(fixAll=True)
-        runString = "%simfit -c %s %s " % (gParams.imfitPath, fname, gParams.fitsToFit)
+        imfit_binary = path.join(gParams.imfitPath, imfit)
+        runString = "%s -c %s %s " % (imfit_binary, fname, gParams.fitsToFit)
         runString += " --fitstat-only --max-threads 1 "
         runString += " --save-params /dev/null "
         if gParams.PSF != "none":
@@ -75,7 +78,8 @@ class Converger(MendelOrganism):
 
     def save_results(self, outFile):
         fname = self.model.create_input_file(fixAll=True)
-        runString = "%smakeimage %s --refimage %s " % (gParams.imfitPath, fname, gParams.fitsToFit)
+        makeimage_binary = path.join(gParams.imfitPath, makeimage)
+        runString = "%s %s --refimage %s " % (makeimage_binary, fname, gParams.fitsToFit)
         if gParams.PSF != "none":
             runString += " --psf %s " % (gParams.PSF)
         runString += "--output %s" % (outFile)
@@ -92,9 +96,10 @@ class Converger(MendelOrganism):
         self.model.create_input_file(fname)
         # If we are NOT going to run LM optimisation right now, then
         # save run strings in a file for the future
+        imfit_binary = path.join(gParams.imfitPath, imfit)
         if gParams.runLM == "no":
             script = open("%s/results/run_lm.sh" % (getcwd()), "a")
-            runString = "%simfit -c %i_lm_input.dat ../%s " % (gParams.imfitPath, ident, gParams.fitsToFit)
+            runString = "%s -c %i_lm_input.dat ../%s " % (imfit_binary, ident, gParams.fitsToFit)
             if gParams.PSF != "none":
                 runString += " --psf ../%s " % (gParams.PSF)
             if gParams.mask != "none":
@@ -114,7 +119,7 @@ class Converger(MendelOrganism):
             script.close()
             return
         else:
-            runString = "%simfit -c %s %s " % (gParams.imfitPath, fname, gParams.fitsToFit)
+            runString = "%s -c %s %s " % (imfit_binary, fname, gParams.fitsToFit)
             runString += " --max-threads %i " % (gParams.LMCores)
             if gParams.PSF != "none":
                 runString += " --psf %s " % (gParams.PSF)
@@ -136,10 +141,14 @@ class Converger(MendelOrganism):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) < 3:
+        print("Usage: ./cluster_imfit.py  model.imfit config.dat")
+    
     logFileName = "%s/log.dat" % (getcwd())
     logFile = open(logFileName, "a", buffering=1)
     logFile.write("\n\n\n################################\n")
-    gParams = GeneralParams("config.dat")
+    
+    gParams = GeneralParams(sys.argv[2])
     pop = Population(species=Converger, init=gParams.zeroGenSize,
                      childCount=gParams.popSize,
                      childCull=gParams.selectNbest,
@@ -161,8 +170,8 @@ if __name__ == '__main__':
         best = pop.best()
         ftns = best.get_fitness()
         avgFtns = pop.fitness()
-        print("generation %i: best=%5.2f average=%5.2f" % (iGen, ftns, avgFtns), end='')
-        logFile.write("generation %i: best=%5.2f average=%5.2f" % (iGen, ftns, avgFtns))
+        print("generation %i: best=%8.5f average=%8.5f" % (iGen, ftns, avgFtns), end='')
+        logFile.write("generation %i: best=%8.5f average=%8.5f" % (iGen, ftns, avgFtns))
         bestFitness.append(ftns)
         avgFitness.append(avgFtns)
 
@@ -177,8 +186,8 @@ if __name__ == '__main__':
         if (iGen > gParams.fSpan):
             relBestFitnessChange = abs(bestFitness[-1] - bestFitness[-gParams.fSpan]) / bestFitness[-1]
             relAvgFitnessChange = abs(avgFitness[-1]-avgFitness[-gParams.fSpan]) / avgFitness[-1]
-            print(" (delta=%1.3e)" % (max(relBestFitnessChange, relAvgFitnessChange)))
-            logFile.write(" (delta=%1.3e)\n" % (max(relBestFitnessChange, relAvgFitnessChange)))
+            print(" (delta=%1.5e)" % (max(relBestFitnessChange, relAvgFitnessChange)))
+            logFile.write(" (delta=%1.5e)\n" % (max(relBestFitnessChange, relAvgFitnessChange)))
             if  (relBestFitnessChange < gParams.fTol) and (relAvgFitnessChange < gParams.fTol):
                 print("\n GA method converged")
                 logFile.write("\n GA method converged\n")
