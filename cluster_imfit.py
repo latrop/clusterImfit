@@ -28,7 +28,7 @@ def remove(pth):
 
 def run_imfit_parallel(runString, fname=None):
     chisq = 1e10
-    stdoutFileName ="%s/results/stdout_%s.dat" % (getcwd(), uuid.uuid4())
+    stdoutFileName = "%s/results/stdout_%s.dat" % (getcwd(), uuid.uuid4())
     stdoutFile = open(stdoutFileName, "w")
     proc = subprocess.Popen(runString, stdout=stdoutFile, shell=True)
     proc.wait()
@@ -37,7 +37,7 @@ def run_imfit_parallel(runString, fname=None):
         if "Reduced Chi^2 =" in line:
             chisq = float(line.split()[3])
     remove(stdoutFileName)
-    if not fname is None:
+    if fname is not None:
         remove(fname)
     return chisq
 
@@ -48,14 +48,14 @@ class Converger(MendelOrganism):
     """
     model = ImfitModel(sys.argv[1])
     genome = model.create_genome()
-    
+
     def prepare_fitness(self):
         genome = {}
         for key in self.genes.keys():
             genome[key] = self[key]
         self.model.genome_to_model(genome)
         fname = self.model.create_input_file(fixAll=True)
-        imfit_binary = path.join(gParams.imfitPath, imfit)
+        imfit_binary = path.join(gParams.imfitPath, "imfit")
         runString = "%s -c %s %s " % (imfit_binary, fname, gParams.fitsToFit)
         runString += " --fitstat-only --max-threads 1 "
         runString += " --save-params /dev/null "
@@ -78,7 +78,7 @@ class Converger(MendelOrganism):
 
     def save_results(self, outFile):
         fname = self.model.create_input_file(fixAll=True)
-        makeimage_binary = path.join(gParams.imfitPath, makeimage)
+        makeimage_binary = path.join(gParams.imfitPath, "makeimage")
         runString = "%s %s --refimage %s " % (makeimage_binary, fname, gParams.fitsToFit)
         if gParams.PSF != "none":
             runString += " --psf %s " % (gParams.PSF)
@@ -96,7 +96,7 @@ class Converger(MendelOrganism):
         self.model.create_input_file(fname)
         # If we are NOT going to run LM optimisation right now, then
         # save run strings in a file for the future
-        imfit_binary = path.join(gParams.imfitPath, imfit)
+        imfit_binary = path.join(gParams.imfitPath, "imfit")
         if gParams.runLM == "no":
             script = open("%s/results/run_lm.sh" % (getcwd()), "a")
             runString = "%s -c %i_lm_input.dat ../%s " % (imfit_binary, ident, gParams.fitsToFit)
@@ -113,7 +113,7 @@ class Converger(MendelOrganism):
             runString += "--ftol 0.00001"
             runString += " --save-params %i_lm_result.dat " % (ident)
             runString += " --save-model %i_lm_model.fits " % (ident)
-            runString += " --save-residual %i_lm_residual.fits " % (ident) 
+            runString += " --save-residual %i_lm_residual.fits " % (ident)
             runString += " %s \n\n" % (gParams.addImfitStr)
             script.write(runString)
             script.close()
@@ -134,7 +134,7 @@ class Converger(MendelOrganism):
             runString += "--ftol 0.00001"
             runString += " --save-params %s/results/%i_lm_result.dat " % (getcwd(), ident)
             runString += " --save-model %s/results/%i_lm_model.fits " % (getcwd(), ident)
-            runString += " --save-residual %s/results/%i_lm_residual.fits " % (getcwd(), ident) 
+            runString += " --save-residual %s/results/%i_lm_residual.fits " % (getcwd(), ident)
             runString += " %s \n\n" % (gParams.addImfitStr)
             result = pool.apply_async(run_imfit_parallel, [runString])
             return result
@@ -143,11 +143,11 @@ class Converger(MendelOrganism):
 if __name__ == '__main__':
     if len(sys.argv) < 3:
         print("Usage: ./cluster_imfit.py  model.imfit config.dat")
-    
+
     logFileName = "%s/log.dat" % (getcwd())
     logFile = open(logFileName, "a", buffering=1)
     logFile.write("\n\n\n################################\n")
-    
+
     gParams = GeneralParams(sys.argv[2])
     pop = Population(species=Converger, init=gParams.zeroGenSize,
                      childCount=gParams.popSize,
