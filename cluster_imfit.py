@@ -2,11 +2,9 @@
 
 import datetime
 import time
-import glob
 import sys
 import os
 from os import path
-import argparse
 from os import getcwd
 from multiprocessing import Pool
 import subprocess
@@ -16,8 +14,7 @@ import uuid
 from numpy import argmin, isnan
 
 from libs.read_input import ImfitModel, GeneralParams
-from libs.pygene.gene import FloatGene, FloatGeneMax
-from libs.pygene.organism import Organism, MendelOrganism
+from libs.pygene.organism import MendelOrganism
 from libs.pygene.population import Population
 
 
@@ -181,14 +178,14 @@ if __name__ == '__main__':
             exit(1)
         if gParams.saveGens == "yes":
             best.save_results("%s/results/generations/gen_%03i.fits" % (getcwd(), iGen))
-        if not gParams.genTextFile is None:
+        if gParams.genTextFile is not None:
             best.model.model_to_text(iGen, ftns, gParams.genTextFile)
         if (iGen > gParams.fSpan):
             relBestFitnessChange = abs(bestFitness[-1] - bestFitness[-gParams.fSpan]) / bestFitness[-1]
             relAvgFitnessChange = abs(avgFitness[-1]-avgFitness[-gParams.fSpan]) / avgFitness[-1]
             print(" (delta=%1.5e)" % (max(relBestFitnessChange, relAvgFitnessChange)))
             logFile.write(" (delta=%1.5e)\n" % (max(relBestFitnessChange, relAvgFitnessChange)))
-            if  (relBestFitnessChange < gParams.fTol) and (relAvgFitnessChange < gParams.fTol):
+            if (relBestFitnessChange < gParams.fTol) and (relAvgFitnessChange < gParams.fTol):
                 print("\n GA method converged")
                 logFile.write("\n GA method converged\n")
                 break
@@ -213,7 +210,7 @@ if __name__ == '__main__':
         print("\n Starting L-M optimisation")
         logFile.write("\n Starting L-M optimisation\n")
     bestOrganisms = sorted(pop)[0:gParams.numOfLM]
-    result = [org.run_lm_optimisation(i) for i,org in enumerate(bestOrganisms)]
+    result = [org.run_lm_optimisation(i) for i, org in enumerate(bestOrganisms)]
     if gParams.runLM == "yes":
         chiSqValues = [r.get() for r in result]
         bestModelNumber = argmin(chiSqValues)
@@ -236,7 +233,7 @@ if __name__ == '__main__':
         # Load resulting model
         resModel = ImfitModel("%s/results/result.dat" % getcwd())
         # Store final parameters to generations file
-        if not gParams.genTextFile is None:
+        if gParams.genTextFile is not None:
             resModel.model_to_text(iGen+1, chiSqValues[bestModelNumber], gParams.genTextFile)
         # Check boundaries
         badParams = best.model.check_boundaries(resModel)
@@ -244,7 +241,8 @@ if __name__ == '__main__':
             fbad = open("%s/results/bad_params.dat" % getcwd(), "w")
             fbad.truncate(0)
             print("Warging: these parameters have values that are close to their boundaries:")
-            logFile.write("Warging: some parameters have values that are close to their boundaries (see 'bad_params.dat').\n")
+            logFile.write("Warging: some parameters have values that are close to their boundaries")
+            logFile.write(" (see 'bad_params.dat').\n")
             for p in badParams:
                 print(p)
                 fbad.write("%s\n" % p)

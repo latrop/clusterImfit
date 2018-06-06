@@ -3,9 +3,7 @@
 import uuid
 from os import getcwd
 from os.path import exists
-import sys
-from libs.pygene.gene import FloatGene, FloatGeneMax, IntGene
-from libs.pygene.organism import Organism, MendelOrganism
+from libs.pygene.gene import FloatGeneMax
 
 
 def parse_imfit_line(line):
@@ -13,19 +11,19 @@ def parse_imfit_line(line):
     returns parameters"""
     params = line.split()
     name = params[0]
-    value = float(params[1]) # Value of the parameter is the second entry of the line
+    value = float(params[1])  # Value of the parameter is the second entry of the line
     # (after the name)
     # Lets now find range of values. Its have to contain the coma and must
     # be the second enrty (otherwise imfin wont work).
     # Some parameters can be fixed, so we have to check this possibility at first
-    if (len(params) == 2) or ("fixed" in params[2]) :
+    if (len(params) == 2) or ("fixed" in params[2]):
         # No bounds specified at all or fixed value
         lowerLim = upperLim = None
     else:
         rangeParams = params[2].split(",")
         lowerLim = float(rangeParams[0])
         upperLim = float(rangeParams[1])
-	    
+
     return ImfitParameter(name, value, lowerLim, upperLim)
 
 
@@ -41,11 +39,13 @@ class ImfitParameter(object):
             self.fixed = True
         else:
             self.fixed = False
+
     def tostring(self, fixAll):
         if fixAll or self.fixed:
-            return "{:12}{:6.2f}     fixed\n".format(self.name, self.value)
+            return "%s %r fixed\n" % (self.name, self.value)
         else:
-            return "{:12}{:6.2f}{:12.2f},{:1.2f}\n".format(self.name, self.value, self.lowerLim, self.upperLim)
+            return "%s %r %r,%r\n" % (self.name, self.value, self.lowerLim, self.upperLim)
+
     def change_value(self, newValue):
         self.value = newValue
         if not self.fixed:
@@ -60,16 +60,19 @@ class ImfitFunction(object):
     all its parameters their ranges"""
     def __init__(self, funcName, ident):
         # ident is a unical number of the function
-        # funcName is just a type of the function and it can be 
+        # funcName is just a type of the function and it can be
         # the same for different galaxy components
         self.name = funcName
         self.ident = ident
-        self.uname = "%s.%i" % (funcName, ident) # func unique name
+        self.uname = "%s.%i" % (funcName, ident)  # func unique name
         self.params = []
+
     def add_parameter(self, newParameter):
         self.params.append(newParameter)
+
     def num_of_params(self):
         return len(self.params)
+
     def get_par_by_name(self, name):
         for par in self.params:
             if par.name == name:
@@ -84,6 +87,7 @@ class ImfitModel(object):
         self.listOfFunctions = []
         self.numberOfParams = 0
         funcName = None
+        currentFunction = None
         ident = -1
         for line in open(modelFileName):
             sLine = line.strip()
@@ -184,7 +188,7 @@ class ImfitModel(object):
                     continue
                 parRange = selfParam.upperLim - selfParam.lowerLim
                 eps = parRange / 1000.0
-                if (abs(resParam.value-selfParam.upperLim)<eps) or (abs(resParam.value-selfParam.lowerLim)<eps):
+                if (abs(resParam.value-selfParam.upperLim) < eps) or (abs(resParam.value-selfParam.lowerLim) < eps):
                     badParams.append("%s(%i): %s" % (selfFunc.name, selfFunc.ident, selfParam.name))
         return badParams
 
@@ -290,6 +294,6 @@ class GeneralParams(object):
                 continue
             if sLine.startswith("genTextFile"):
                 if sLine.split()[1] == "none":
-                    self.genTextFile == None
+                    self.genTextFile is None
                 else:
                     self.genTextFile = sLine.split()[1]
