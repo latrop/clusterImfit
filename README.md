@@ -14,13 +14,12 @@ is the one with best chi squared among results of LM-optimisation.
 then **fTol** for at least **fSpan** last generations.
 
 # Usage
-1) Place in the program directory a valid imfit input file
 
-2) Place in the program directory fits files (object and (optional) psf and mask)
+1) Place in the program directory fits files (object and (optional) psf and mask)
 
-3) Configure program with config file. All parameter names are explained in the example of the config.
+2) Configure program with config file. All parameter names are explained in the example of the config.
 
-4) Run cluster_imfit.py one argument: file name of input file (in a form of imfit model)
+3) Run cluster_imfit.py one argument: file name of input file (in a form of imfit model)
 
 Results will be in 'results' directory. 'results/generations' directory will contain one best
 organism per generation, so one can see the progress of the optimisation.
