@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+import argparse
 import datetime
 import time
 import sys
@@ -145,7 +146,13 @@ if __name__ == '__main__':
     logFile = open(logFileName, "a", buffering=1)
     logFile.write("\n\n\n################################\n")
 
-    gParams = GeneralParams(sys.argv[2])
+    parser = argparse.ArgumentParser()
+    parser.add_argument("model")
+    parser.add_argument("config")
+    for key, value in GeneralParams(sys.argv[2]).params.items():
+        parser.add_argument("--%s" % key, default=value, type=type(value))
+    gParams = parser.parse_args()
+    print(gParams)
     pop = Population(species=Converger, init=gParams.zeroGenSize,
                      childCount=gParams.popSize,
                      childCull=gParams.selectNbest,

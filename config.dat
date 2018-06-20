@@ -1,14 +1,14 @@
 numOfCores     4              # Number of cores to scatter computations
-Fits           Zd03_scaled.fits  # Fits file with galaxy
+fitsToFit      nbody_eon.fits  # Fits file with galaxy
 PSF            none      # File with psf or 'none'
-Mask           outer_disk_mask.fits       # Mask file or 'none'
-Weight         none            # Weight image
+mask           none       # Mask file or 'none'
+weight         none            # Weight image
 readNoise      1             # Readnoise of an image
 gain           1.00             # Gain value
-ZeroGenSize    300             # Size of random zero generation
-Popsize        250             # Size of i-th generation
-selectNbest    75             # Number of best organisms selected in the generation
-addNew         15             # Add this many random organisms in each generation
+zeroGenSize    300             # Size of random zero generation
+popSize        100             # Size of i-th generation
+selectNbest    50             # Number of best organisms selected in the generation
+addNew         10             # Add this many random organisms in each generation
 maxGenNumber   50             # Maximum number of generation
 fTol          1e-3             # Relative fitness change for stop condition
 fSpan            5             # How many generations in a row have to have improvement less than fTol to raise the stop condition
@@ -16,6 +16,6 @@ imfitPath     /usr/bin/              # Path to imfit and makeimage binaries
 addImfitStr   none             # If you want to add some other options to imfit, place the string here between ""
 saveGens      yes              # save image of the best model for each generation (yes/no)
 runLM          no             # Run LM optimisation at the end. If no, just create a srcript to run it later (no/yes)
-numOfLM         1             # Number of LM model to run at the end
-LMCores         1             # Number of cores to use for each LM model
+numOfLM         4             # Number of LM model to run at the end
+LMCores         4             # Number of cores to use for each LM model
 genTextFile  ./results/generations.dat  # Text file to store values of model parameters after each generation (or none)

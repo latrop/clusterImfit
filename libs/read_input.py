@@ -215,6 +215,7 @@ class GeneralParams(object):
     """ Input parameters unrelated to imfit (input image, size of the
     population etc.) """
     def __init__(self, fileName):
+        self.params = {}
         for line in open(fileName):
             sLine = line.strip()
             if sLine.startswith("#"):
@@ -224,76 +225,86 @@ class GeneralParams(object):
                 # Drop the comment part of the line if exists
                 sLine = sLine[:sLine.index("#")].strip()
             if sLine.startswith("numOfCores"):
-                self.numOfCores = int(sLine.split()[1])
+                self.params["numOfCores"] = int(sLine.split()[1])
                 continue
-            if sLine.startswith("Fits"):
-                self.fitsToFit = sLine.split()[1]
+            if sLine.startswith("fitsToFit"):
+                self.params["fitsToFit"] = sLine.split()[1]
                 continue
             if sLine.startswith("PSF"):
-                self.PSF = sLine.split()[1]
+                self.params["PSF"] = sLine.split()[1]
                 continue
-            if sLine.startswith("Mask"):
-                self.mask = sLine.split()[1]
+            if sLine.startswith("mask"):
+                self.params["mask"] = sLine.split()[1]
                 continue
-            if sLine.startswith("Weight"):
-                self.weight = sLine.split()[1]
+            if sLine.startswith("weight"):
+                self.params["weight"] = sLine.split()[1]
                 continue
-            if sLine.startswith("Popsize"):
-                self.popSize = int(sLine.split()[1])
+            if sLine.startswith("popSize"):
+                self.params["popSize"] = int(sLine.split()[1])
                 continue
-            if sLine.startswith("ZeroGenSize"):
-                self.zeroGenSize = int(sLine.split()[1])
+            if sLine.startswith("zeroGenSize"):
+                self.params["zeroGenSize"] = int(sLine.split()[1])
                 continue
             if sLine.startswith("selectNbest"):
-                self.selectNbest = int(sLine.split()[1])
+                self.params["selectNbest"] = int(sLine.split()[1])
                 continue
             if sLine.startswith("addNew"):
-                self.addNew = int(sLine.split()[1])
+                self.params["addNew"] = int(sLine.split()[1])
                 continue
             if sLine.startswith("readNoise"):
                 if sLine.split()[1] == "none":
-                    self.readNoise == "none"
+                    self.params["readNoise"] == "none"
                 else:
-                    self.readNoise = float(sLine.split()[1])
+                    self.params["readNoise"] = float(sLine.split()[1])
                 continue
             if sLine.startswith("gain"):
                 if sLine.split()[1] == "none":
-                    self.gain = "none"
+                    self.params["gain"] = "none"
                 else:
-                    self.gain = float(sLine.split()[1])
+                    self.params["gain"] = float(sLine.split()[1])
                 continue
             if sLine.startswith("maxGenNumber"):
-                self.maxGenNumber = int(sLine.split()[1])
+                self.params["maxGenNumber"] = int(sLine.split()[1])
                 continue
             if sLine.startswith("fTol"):
-                self.fTol = float(sLine.split()[1])
+                self.params["fTol"] = float(sLine.split()[1])
                 continue
             if sLine.startswith("fSpan"):
-                self.fSpan = int(sLine.split()[1])
+                self.params["fSpan"] = int(sLine.split()[1])
                 continue
             if sLine.startswith("imfitPath"):
-                self.imfitPath = sLine.split()[1]
+                self.params["imfitPath"] = sLine.split()[1]
                 continue
             if sLine.startswith("addImfitStr"):
                 if sLine.split()[1] != "none":
-                    self.addImfitStr = sLine.split('"')[1]
+                    self.params["addImfitStr"] = sLine.split('"')[1]
                 else:
-                    self.addImfitStr = " "
+                    self.params["addImfitStr"] = " "
                 continue
             if sLine.startswith("runLM"):
-                self.runLM = sLine.split()[1]
+                self.params["runLM"] = sLine.split()[1]
                 continue
             if sLine.startswith("numOfLM"):
-                self.numOfLM = int(sLine.split()[1])
+                self.params["numOfLM"] = int(sLine.split()[1])
                 continue
             if sLine.startswith("LMCores"):
-                self.LMCores = int(sLine.split()[1])
+                self.params["LMCores"] = int(sLine.split()[1])
                 continue
             if sLine.startswith("saveGens"):
-                self.saveGens = sLine.split()[1]
+                self.params["saveGens"] = sLine.split()[1]
                 continue
             if sLine.startswith("genTextFile"):
                 if sLine.split()[1] == "none":
-                    self.genTextFile is None
+                    self.params["genTextFile"] is None
                 else:
-                    self.genTextFile = sLine.split()[1]
+                    self.params["genTextFile"] = sLine.split()[1]
+
+    def __getitem__(self, key):
+        return self.params[key]
+
+    def __setitem__(self, key, item):
+        self.params[key] = item
+
+    def show(self):
+        for key, value in self.params.items():
+            print("%r: %r" % (key, value))
