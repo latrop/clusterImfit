@@ -152,7 +152,6 @@ if __name__ == '__main__':
     for key, value in GeneralParams(sys.argv[2]).params.items():
         parser.add_argument("--%s" % key, default=value, type=type(value))
     gParams = parser.parse_args()
-    print(gParams)
     pop = Population(species=Converger, init=gParams.zeroGenSize,
                      childCount=gParams.popSize,
                      childCull=gParams.selectNbest,

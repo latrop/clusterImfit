@@ -78,6 +78,16 @@ class ImfitFunction(object):
             if par.name == name:
                 return par
 
+    def to_model_file(self, file_name):
+        fout = open(file_name, "w")
+        fout.truncate(0)
+        fout.write(self.get_par_by_name("X0").tostring(True))
+        fout.write(self.get_par_by_name("Y0").tostring(True))
+        fout.write("FUNCTION " + self.name+"\n")
+        for par in self.params[2:]:
+            fout.write(par.tostring(True))
+        fout.close()
+
 
 class ImfitModel(object):
     """Imfit functions and their parameters"""
